@@ -156,9 +156,10 @@ body {
 .analysis-box {
   margin-top: 16px; padding: 16px; border-radius: 8px; background: var(--bg);
   border-left: 4px solid var(--primary); display: none;
+  max-height: 55vh; overflow-y: auto;
 }
 .analysis-box.show { display: block; }
-.analysis-box .analysis-title { font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; }
+.analysis-box .analysis-title { font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; position: sticky; top: 0; background: var(--bg); padding-bottom: 4px; z-index: 1; }
 .analysis-box .analysis-content { font-size: 0.85rem; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
 
 /* Judgment buttons */
@@ -206,10 +207,16 @@ body {
   border: 1px solid var(--border);
 }
 .essay-answer.show { display: block; }
+.essay-answer .analysis-title { position: sticky; top: 0; background: var(--bg); padding-bottom: 4px; z-index: 1; }
 .answer-scroll-hint {
   text-align: center; font-size: 0.7rem; color: var(--text-muted);
   padding: 4px; background: var(--bg); border-bottom: 1px dashed var(--border);
 }
+/* Scrollbar styling */
+.essay-answer::-webkit-scrollbar, .analysis-box::-webkit-scrollbar { width: 6px; }
+.essay-answer::-webkit-scrollbar-track, .analysis-box::-webkit-scrollbar-track { background: transparent; }
+.essay-answer::-webkit-scrollbar-thumb, .analysis-box::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 3px; }
+.essay-answer::-webkit-scrollbar-thumb:hover, .analysis-box::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 /* Progress */
 #progress-bar { position: fixed; bottom: 0; left: 270px; right: 0; height: 3px; background: var(--border); z-index: 100; }
