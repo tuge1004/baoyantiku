@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>新传知识图谱 · 2026保研/考研 · 扩展版</title>
+<title>新传知识图谱</title>
 <style>
 :root {
   --bg: #0F0F1A;
@@ -897,6 +897,10 @@ node.on('click', (event, d) => {
   event.stopPropagation();
   showCard(d);
   highlightNode(d);
+  // Auto-open side panel on mobile when clicking a node
+  if (window.innerWidth <= 768) {
+    openSidePanel();
+  }
 });
 
 // Hover
