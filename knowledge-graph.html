@@ -936,24 +936,30 @@ simulation.on('tick', () => {
     .attr('y1', d => d.source && d.source.y != null ? d.source.y : 0)
     .attr('x2', d => d.target && d.target.x != null ? d.target.x : 0)
     .attr('y2', d => d.target && d.target.y != null ? d.target.y : 0)
-    .attr('opacity', d => {
+    .each(function(d) {
       const src = typeof d.source === 'object' ? d.source.id : d.source;
       const tgt = typeof d.target === 'object' ? d.target.id : d.target;
-      return (globalVisible.has(src) && globalVisible.has(tgt)) ? 1 : 0;
+      this.style.opacity = (globalVisible.has(src) && globalVisible.has(tgt)) ? '1' : '0';
     });
   // Update link label positions
-  linkLabelSelection
-    .attr('x', d => ((d.source.x || 0) + (d.target.x || 0)) / 2)
-    .attr('y', d => ((d.source.y || 0) + (d.target.y || 0)) / 2)
-    .attr('opacity', d => {
-      const srcId = typeof d.source === 'object' ? d.source.id : d.source;
-      const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
-      return (globalVisible.has(srcId) && globalVisible.has(tgtId)) ? 0.9 : 0;
-    });
+  // Update link label positions + visibility
+  linkLabelSelection.each(function(d) {
+    const sx = d.source ? d.source.x || 0 : 0;
+    const sy = d.source ? d.source.y || 0 : 0;
+    const tx = d.target ? d.target.x || 0 : 0;
+    const ty = d.target ? d.target.y || 0 : 0;
+    this.setAttribute('x', (sx + tx) / 2);
+    this.setAttribute('y', (sy + ty) / 2);
+    const srcId = typeof d.source === 'object' ? d.source.id : d.source;
+    const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
+    this.style.opacity = (globalVisible.has(srcId) && globalVisible.has(tgtId)) ? '0.9' : '0';
+  });
   node.attr('transform', d => {
     if (d.x == null || d.y == null) return 'translate(0,0)';
     return 'translate('+d.x+','+d.y+')';
-  }).attr('opacity', d => globalVisible.has(d.id) ? 1 : 0);
+  }).each(function(d) {
+    this.style.opacity = globalVisible.has(d.id) ? '1' : '0';
+  });
 });
 
 // Resize
