@@ -215,11 +215,24 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
     <h3>点击节点查看详情</h3>
     <div id="card-container"><p style="color:var(--muted);font-size:0.8rem;">点击图谱中的节点或搜索来查看详细信息</p></div>
     <div id="game-area">
-      <div class="game-hint-type" id="game-hint-type"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="game-hint-type" id="game-hint-type" style="margin:0;"></div>
+        <div style="font-size:0.75rem;color:var(--muted);" id="game-progress"></div>
+      </div>
       <div class="game-question" id="game-question"></div>
-      <div class="game-input">
+      <div class="game-input" id="game-input-area">
         <input type="text" id="game-answer" placeholder="输入你的答案..." onkeydown="if(event.key==='Enter')checkGameAnswer()">
         <button onclick="checkGameAnswer()">提交</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button onclick="prevQuestion()" style="padding:6px 14px;border:1px solid var(--rule);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;font-size:0.78rem;font-family:inherit;">上一题</button>
+        <button onclick="nextGameQuestion()" style="padding:6px 14px;border:1px solid var(--rule);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;font-size:0.78rem;font-family:inherit;">下一题</button>
+        <button onclick="showHint()" style="padding:6px 14px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;font-size:0.78rem;font-family:inherit;">提示</button>
+        <button onclick="toggleGameSearch()" style="padding:6px 14px;border:1px solid var(--rule);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;font-size:0.78rem;font-family:inherit;">搜索</button>
+      </div>
+      <div id="game-search-box" style="display:none;margin-top:10px;">
+        <input type="text" id="game-search-input" placeholder="搜索人物/理论帮助答题..." oninput="doGameSearch(this.value)" style="width:100%;padding:8px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--bg);color:var(--ink);font-size:0.82rem;outline:none;font-family:inherit;box-sizing:border-box;">
+        <div id="game-search-results" style="margin-top:6px;max-height:150px;overflow-y:auto;font-size:0.78rem;color:var(--muted);"></div>
       </div>
       <div class="game-feedback" id="game-feedback"></div>
     </div>
@@ -1243,132 +1256,331 @@ function setMode(mode) {
 }
 
 // ===== FILL-IN-THE-BLANK GAME =====
-function nextGameQuestion() {
-  const types = ['theory-scholar','scholar-theory','book-scholar','scholar-school','theory-year','research-scholar','scholar-nationality','theory-topic'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  let q = '';
-  let answer = '';
-  let hintType = '';
+let gameHistory = []; // history of questions
+let gameIdx = -1;
+let blankCount = 0; // number of blanks in current question
+let currentBlankIdx = 0; // which blank is active
+let answeredBlanks = {}; // { blankId: answer }
 
-  // Safety: retry if data insufficient
+function generateQuestion() {
+  const types = [
+    'theory-scholar','scholar-theory','book-scholar','scholar-school',
+    'theory-year','research-scholar','scholar-nationality','theory-topic',
+    'dual-scholar-theory-year','dual-theory-scholar-book','dual-scholar-school-theory',
+    'book-year','research-desc','school-scholars','topic-theory-count'
+  ];
+  const type = types[Math.floor(Math.random() * types.length)];
+  let q = '', answers = [], hintType = '';
   let attempts = 0;
-  while (attempts < 20) {
+
+  while (attempts < 30) {
     attempts++;
     let valid = true;
+    answers = [];
+    answeredBlanks = {};
 
     switch (type) {
       case 'theory-scholar': {
         const t = DATA.theories[Math.floor(Math.random() * DATA.theories.length)];
         const s = scholarMap[t.scholar];
-        if (!s) { valid = false; break; }
-        q = '&ldquo;'+t.name+'&rdquo;是由<span class="blank" id="game-blank">______</span>提出的。';
-        answer = s.name;
-        hintType = '题型：理论 - 人物';
+        if (!s) { valid=false; break; }
+        q = '\u201C'+t.name+'\u201D是由<span class="blank" id="blank0">______</span>提出的。';
+        answers = [s.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '理论\u2192人物';
         break;
       }
       case 'scholar-theory': {
         const s = DATA.scholars[Math.floor(Math.random() * DATA.scholars.length)];
-        const ths = DATA.theories.filter(t => t.scholar === s.id);
-        if (ths.length === 0) { valid = false; break; }
-        const t = ths[Math.floor(Math.random() * ths.length)];
-        q = '&ldquo;'+s.name+'&rdquo;提出了<span class="blank" id="game-blank">______</span>理论。';
-        answer = t.name;
-        hintType = '题型：人物 - 理论';
+        const ths = DATA.theories.filter(t=>t.scholar===s.id);
+        if (!ths.length) { valid=false; break; }
+        const t = ths[Math.floor(Math.random()*ths.length)];
+        q = '\u201C'+s.name+'\u201D提出了<span class="blank" id="blank0">______</span>理论。';
+        answers = [t.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '人物\u2192理论';
         break;
       }
       case 'book-scholar': {
-        const b = DATA.books[Math.floor(Math.random() * DATA.books.length)];
+        const b = DATA.books[Math.floor(Math.random()*DATA.books.length)];
         const s = scholarMap[b.scholar];
-        if (!s) { valid = false; break; }
-        q = '&ldquo;'+b.name+'&rdquo;('+b.year+')的作者是<span class="blank" id="game-blank">______</span>。';
-        answer = s.name;
-        hintType = '题型：著作 - 人物';
+        if (!s) { valid=false; break; }
+        q = '\u201C'+b.name+'\u201D('+b.year+')的作者是<span class="blank" id="blank0">______</span>。';
+        answers = [s.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '著作\u2192人物';
         break;
       }
       case 'scholar-school': {
-        const s = DATA.scholars[Math.floor(Math.random() * DATA.scholars.length)];
+        const s = DATA.scholars[Math.floor(Math.random()*DATA.scholars.length)];
         const sc = schoolMap[s.school];
-        if (!sc) { valid = false; break; }
-        q = '&ldquo;'+s.name+'&rdquo;属于<span class="blank" id="game-blank">______</span>学派。';
-        answer = sc.name;
-        hintType = '题型：人物 - 学派归属';
+        if (!sc) { valid=false; break; }
+        q = '\u201C'+s.name+'\u201D属于<span class="blank" id="blank0">______</span>。';
+        answers = [sc.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '人物\u2192学派';
         break;
       }
       case 'theory-year': {
-        const t = DATA.theories[Math.floor(Math.random() * DATA.theories.length)];
-        q = '&ldquo;'+t.name+'&rdquo;理论是在<span class="blank" id="game-blank">______</span>年提出的。';
-        answer = String(t.year);
-        hintType = '题型：理论 - 年份';
+        const t = DATA.theories[Math.floor(Math.random()*DATA.theories.length)];
+        q = '\u201C'+t.name+'\u201D理论提出于<span class="blank" id="blank0">______</span>年。';
+        answers = [String(t.year)]; blankCount=1; currentBlankIdx=0;
+        hintType = '理论\u2192年份';
         break;
       }
       case 'research-scholar': {
-        const r = DATA.researches[Math.floor(Math.random() * DATA.researches.length)];
+        const r = DATA.researches[Math.floor(Math.random()*DATA.researches.length)];
         const s = scholarMap[r.scholar];
-        if (!s) { valid = false; break; }
-        q = '&ldquo;'+r.name+'&rdquo;是由<span class="blank" id="game-blank">______</span>进行的。';
-        answer = s.name;
-        hintType = '题型：研究 - 人物';
+        if (!s) { valid=false; break; }
+        q = '\u201C'+r.name+'\u201D研究由<span class="blank" id="blank0">______</span>完成。';
+        answers = [s.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '研究\u2192人物';
         break;
       }
       case 'scholar-nationality': {
-        const s = DATA.scholars[Math.floor(Math.random() * DATA.scholars.length)];
-        q = '&ldquo;'+s.name+'&rdquo;的国籍是<span class="blank" id="game-blank">______</span>。';
-        answer = s.nationality;
-        hintType = '题型：人物 - 国籍';
+        const s = DATA.scholars[Math.floor(Math.random()*DATA.scholars.length)];
+        q = '\u201C'+s.name+'\u201D的国籍是<span class="blank" id="blank0">______</span>。';
+        answers = [s.nationality]; blankCount=1; currentBlankIdx=0;
+        hintType = '人物\u2192国籍';
         break;
       }
       case 'theory-topic': {
-        const topicsWithTheories = DATA.topics.filter(tp => tp.theories && tp.theories.length > 0);
-        if (topicsWithTheories.length === 0) { valid = false; break; }
-        const tp = topicsWithTheories[Math.floor(Math.random() * topicsWithTheories.length)];
-        const tId = tp.theories[Math.floor(Math.random() * tp.theories.length)];
+        const tps = DATA.topics.filter(tp=>tp.theories&&tp.theories.length>0);
+        if (!tps.length) { valid=false; break; }
+        const tp = tps[Math.floor(Math.random()*tps.length)];
+        const tId = tp.theories[Math.floor(Math.random()*tp.theories.length)];
         const t = theoryMap[tId];
-        if (!t) { valid = false; break; }
-        q = '&ldquo;'+t.name+'&rdquo;理论属于<span class="blank" id="game-blank">______</span>专题。';
-        answer = tp.name;
-        hintType = '题型：理论 - 所属专题';
+        if (!t) { valid=false; break; }
+        q = '\u201C'+t.name+'\u201D属于<span class="blank" id="blank0">______</span>专题方向。';
+        answers = [tp.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '理论\u2192专题';
+        break;
+      }
+      case 'book-year': {
+        const b = DATA.books[Math.floor(Math.random()*DATA.books.length)];
+        q = '\u201C'+b.name+'\u201D出版于<span class="blank" id="blank0">______</span>年。';
+        answers = [String(b.year)]; blankCount=1; currentBlankIdx=0;
+        hintType = '著作\u2192年份';
+        break;
+      }
+      case 'research-desc': {
+        const r = DATA.researches[Math.floor(Math.random()*DATA.researches.length)];
+        q = '<span class="blank" id="blank0">______</span>（研究名称）'+r.desc.substring(0,40)+'...';
+        answers = [r.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '描述\u2192研究名';
+        break;
+      }
+      case 'school-scholars': {
+        const sc = DATA.schools[Math.floor(Math.random()*DATA.schools.length)];
+        const srs = DATA.scholars.filter(s=>s.school===sc.id);
+        if (srs.length<3) { valid=false; break; }
+        q = '\u201C'+sc.name+'\u201D的代表人物不包括：\nA. <span class="blank" id="blank0">______</span>\n（请填入不属于该学派的人名）';
+        const otherSrs = DATA.scholars.filter(s=>s.school!==sc.id);
+        if (!otherSrs.length) { valid=false; break; }
+        const wrong = otherSrs[Math.floor(Math.random()*otherSrs.length)];
+        answers = [wrong.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '学派\u2192排错';
+        break;
+      }
+      case 'topic-theory-count': {
+        const tps = DATA.topics.filter(tp=>tp.theories&&tp.theories.length>0);
+        if (!tps.length) { valid=false; break; }
+        const tp = tps[Math.floor(Math.random()*tps.length)];
+        q = '\u201C'+tp.name+'\u201D专题涵盖约<span class="blank" id="blank0">______</span>个理论。';
+        answers = [String(tp.theories.length)]; blankCount=1; currentBlankIdx=0;
+        hintType = '专题\u2192理论数';
+        break;
+      }
+      // ===== DUAL BLANK QUESTIONS =====
+      case 'dual-scholar-theory-year': {
+        const t = DATA.theories[Math.floor(Math.random()*DATA.theories.length)];
+        const s = scholarMap[t.scholar];
+        if (!s) { valid=false; break; }
+        q = '\u201C'+t.name+'\u201D由<span class="blank" id="blank0">______</span>于<span class="blank" id="blank1">______</span>年提出。';
+        answers = [s.name, String(t.year)]; blankCount=2; currentBlankIdx=0;
+        hintType = '双空：理论\u2192人物+年份';
+        break;
+      }
+      case 'dual-theory-scholar-book': {
+        const s = DATA.scholars[Math.floor(Math.random()*DATA.scholars.length)];
+        const ths = DATA.theories.filter(t=>t.scholar===s.id);
+        const bks = DATA.books.filter(b=>b.scholar===s.id);
+        if (!ths.length||!bks.length) { valid=false; break; }
+        const t = ths[Math.floor(Math.random()*ths.length)];
+        const b = bks[Math.floor(Math.random()*bks.length)];
+        q = '\u201C'+s.name+'\u201D提出了<span class="blank" id="blank0">______</span>理论，著有\u201C<span class="blank" id="blank1">______</span>\u201D。';
+        answers = [t.name, b.name]; blankCount=2; currentBlankIdx=0;
+        hintType = '双空：人物\u2192理论+著作';
+        break;
+      }
+      case 'dual-scholar-school-theory': {
+        const s = DATA.scholars[Math.floor(Math.random()*DATA.scholars.length)];
+        const sc = schoolMap[s.school];
+        const ths = DATA.theories.filter(t=>t.scholar===s.id);
+        if (!sc||!ths.length) { valid=false; break; }
+        const t = ths[Math.floor(Math.random()*ths.length)];
+        q = '<span class="blank" id="blank0">______</span>（学派）的<span class="blank" id="blank1">______</span>（人物）提出了\u201C'+t.name+'\u201D理论。';
+        answers = [sc.name, s.name]; blankCount=2; currentBlankIdx=0;
+        hintType = '双空：学派+人物\u2192理论';
         break;
       }
     }
-
     if (valid) break;
   }
 
-  currentGameQ = { answer, type };
-  document.getElementById('game-hint-type').textContent = hintType;
-  document.getElementById('game-question').innerHTML = q;
-  document.getElementById('game-answer').value = '';
+  return { q, answers, hintType, type };
+}
+
+function renderQuestion(qData) {
+  currentGameQ = qData;
+  document.getElementById('game-hint-type').textContent = qData.hintType;
+  document.getElementById('game-question').innerHTML = qData.q.replace(/\n/g,'<br>');
   document.getElementById('game-feedback').textContent = '';
+  document.getElementById('game-answer').value = '';
+  currentBlankIdx = 0;
+  answeredBlanks = {};
+
+  // Highlight current blank
+  updateBlankHighlight();
   document.getElementById('game-answer').focus();
+
+  // Update progress
+  const total = gameHistory.length;
+  document.getElementById('game-progress').textContent = '第 '+(gameIdx+1)+' / '+total+' 题';
+}
+
+function updateBlankHighlight() {
+  for (let i = 0; i < blankCount; i++) {
+    const el = document.getElementById('blank'+i);
+    if (el) {
+      if (i === currentBlankIdx && !answeredBlanks[i]) {
+        el.style.borderColor = 'var(--accent)';
+        el.style.color = 'var(--accent)';
+        el.style.borderBottomStyle = 'solid';
+      } else if (answeredBlanks[i]) {
+        el.style.borderColor = answeredBlanks[i].correct ? 'var(--correct)' : 'var(--wrong)';
+        el.style.color = answeredBlanks[i].correct ? 'var(--correct)' : 'var(--wrong)';
+      } else {
+        el.style.borderColor = 'var(--rule)';
+        el.style.color = 'var(--muted)';
+        el.style.borderBottomStyle = 'dashed';
+      }
+    }
+  }
+  // Update placeholder
+  const input = document.getElementById('game-answer');
+  if (currentBlankIdx < blankCount && !answeredBlanks[currentBlankIdx]) {
+    input.placeholder = '填写第'+(currentBlankIdx+1)+'个空...';
+  } else {
+    input.placeholder = '已完成';
+  }
+}
+
+function nextGameQuestion() {
+  const qData = generateQuestion();
+  // Trim history if we went back
+  if (gameIdx < gameHistory.length - 1) {
+    gameHistory = gameHistory.slice(0, gameIdx + 1);
+  }
+  gameHistory.push(qData);
+  gameIdx = gameHistory.length - 1;
+  renderQuestion(qData);
+}
+
+function prevQuestion() {
+  if (gameIdx > 0) {
+    gameIdx--;
+    renderQuestion(gameHistory[gameIdx]);
+  }
+}
+
+function showHint() {
+  if (!currentGameQ || currentBlankIdx >= currentGameQ.answers.length) return;
+  const answer = currentGameQ.answers[currentBlankIdx];
+  const hint = answer.substring(0, Math.ceil(answer.length * 0.4)) + '...';
+  document.getElementById('game-feedback').textContent = '提示：'+hint;
+  document.getElementById('game-feedback').style.color = 'var(--accent)';
+}
+
+function toggleGameSearch() {
+  const box = document.getElementById('game-search-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'block') {
+    document.getElementById('game-search-input').focus();
+  }
+}
+
+function doGameSearch(val) {
+  const results = document.getElementById('game-search-results');
+  if (!val.trim()) { results.innerHTML = ''; return; }
+  const v = val.toLowerCase();
+  let html = '';
+  DATA.scholars.forEach(s => {
+    if (s.name.toLowerCase().includes(v) || (s.en&&s.en.toLowerCase().includes(v)))
+      html += '<div style="padding:3px 0;border-bottom:1px solid var(--rule);">👤 '+s.name+' ('+s.school+', '+s.nationality+')</div>';
+  });
+  DATA.theories.forEach(t => {
+    if (t.name.toLowerCase().includes(v)) {
+      const s = scholarMap[t.scholar];
+      html += '<div style="padding:3px 0;border-bottom:1px solid var(--rule);">📖 '+t.name+' ('+t.year+', '+(s?s.name:'?') +')</div>';
+    }
+  });
+  DATA.books.forEach(b => {
+    if (b.name.toLowerCase().includes(v)) {
+      const s = scholarMap[b.scholar];
+      html += '<div style="padding:3px 0;border-bottom:1px solid var(--rule);">📚 '+b.name+' ('+b.year+', '+(s?s.name:'?') +')</div>';
+    }
+  });
+  DATA.schools.forEach(s => {
+    if (s.name.toLowerCase().includes(v) || (s.en&&s.en.toLowerCase().includes(v)))
+      html += '<div style="padding:3px 0;border-bottom:1px solid var(--rule);">🏫 '+s.name+' ('+s.en+')</div>';
+  });
+  DATA.topics.forEach(t => {
+    if (t.name.toLowerCase().includes(v) || (t.en&&t.en.toLowerCase().includes(v)))
+      html += '<div style="padding:3px 0;border-bottom:1px solid var(--rule);">📌 '+t.name+' ('+t.en+')</div>';
+  });
+  results.innerHTML = html || '<div style="padding:4px 0;">未找到结果</div>';
 }
 
 function checkGameAnswer() {
   if (!currentGameQ) return;
   const input = document.getElementById('game-answer').value.trim();
   const feedback = document.getElementById('game-feedback');
-  const blank = document.getElementById('game-blank');
 
-  if (!input) { feedback.textContent = '请输入答案'; feedback.style.color = 'var(--muted)'; return; }
+  // Find next unanswered blank
+  let targetIdx = -1;
+  for (let i = currentBlankIdx; i < blankCount; i++) {
+    if (!answeredBlanks[i]) { targetIdx = i; break; }
+  }
+  if (targetIdx === -1) return;
 
-  const correct = currentGameQ.answer;
-  // Fuzzy match
-  const isCorrect = input.toLowerCase() === correct.toLowerCase() ||
-    correct.includes(input) ||
-    (correct.length > 4 && input.length > 2 && correct.includes(input)) ||
-    (input.length > 2 && correct.includes(input));
+  if (!input) { feedback.textContent = '请输入答案'; feedback.style.color='var(--muted)'; return; }
 
+  const correct = currentGameQ.answers[targetIdx];
+  const isCorrect = input.toLowerCase()===correct.toLowerCase() || correct.includes(input) || (correct.length>3&&input.length>1&&correct.includes(input));
+
+  const blankEl = document.getElementById('blank'+targetIdx);
   if (isCorrect) {
-    gameScore += 10;
+    gameScore += (blankCount > 1 ? 15 : 10);
     gameScoreEl.textContent = '\u2B50 '+gameScore+'\u5206';
-    feedback.textContent = '\u2705 正确！"'+correct+'"';
+    answeredBlanks[targetIdx] = { correct: true, answer: correct };
+    if (blankEl) { blankEl.textContent = correct; blankEl.classList.add('correct'); }
+    feedback.textContent = '✅ 正确！';
     feedback.style.color = 'var(--correct)';
-    if (blank) { blank.textContent = correct; blank.classList.add('correct'); }
-    setTimeout(nextGameQuestion, 1500);
   } else {
-    feedback.textContent = '\u274C 不对哦，正确答案是"'+correct+'"';
+    answeredBlanks[targetIdx] = { correct: false, answer: correct };
+    if (blankEl) { blankEl.textContent = correct; blankEl.classList.add('wrong'); }
+    feedback.textContent = '❌ 不对，答案是"'+correct+'"';
     feedback.style.color = 'var(--wrong)';
-    if (blank) { blank.textContent = correct; blank.classList.add('wrong'); }
-    setTimeout(nextGameQuestion, 2000);
+  }
+
+  // Move to next blank
+  currentBlankIdx = targetIdx + 1;
+  document.getElementById('game-answer').value = '';
+
+  if (currentBlankIdx >= blankCount) {
+    // All blanks answered
+    feedback.textContent += ' (本题完成)';
+    setTimeout(nextGameQuestion, 1800);
+  } else {
+    updateBlankHighlight();
+    document.getElementById('game-answer').focus();
   }
 }
 
