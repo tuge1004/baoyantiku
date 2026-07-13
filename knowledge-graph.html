@@ -677,6 +677,12 @@ const validNodeIds = new Set(nodes.map(n => n.id));
 const validLinks = links.filter(l => validNodeIds.has(l.source) && validNodeIds.has(l.target));
 console.log('Nodes:', nodes.length, 'Links:', links.length, 'Valid links:', validLinks.length);
 
+// Global visibility: set of node ids that should be visible
+const globalVisible = new Set(nodes.map(n => n.id));
+// Build link-to-node map for fast lookup
+const linkNodeMap = new Map();
+validLinks.forEach((l, i) => { linkNodeMap.set(i, { src: l.source, tgt: l.target }); });
+
 // Initialize node positions to random values to prevent stacking
 const w = width(), h = height();
 nodes.forEach((d, i) => {
@@ -712,7 +718,6 @@ const simulation = d3.forceSimulation(nodes)
 // Links
 const link = g.selectAll('line').data(validLinks).join('line')
   .attr('class', 'graph-link')
-  .each(function(d) { d._el = this; })
   .attr('stroke-width', d => {
     if (d.type === 'belongs') return 1.8;
     if (d.type === 'topic') return 1.2;
@@ -723,8 +728,7 @@ const link = g.selectAll('line').data(validLinks).join('line')
 
 // Link labels (relationship text)
 const linkTypeMap = { belongs: '属于', proposed: '提出', conducted: '研究', wrote: '著作', topic: '涉及' };
-const linkLabels = g.selectAll('.link-label-group').data(validLinks).join('g').attr('class', 'link-label-group')
-  .each(function(d) { d._el = this; });
+const linkLabels = g.selectAll('.link-label-group').data(validLinks).join('g').attr('class', 'link-label-group');
 linkLabels.append('text')
   .attr('class', 'link-label')
   .text(d => linkTypeMap[d.type] || '')
@@ -734,7 +738,6 @@ linkLabels.append('text')
 // Nodes
 const node = g.selectAll('g').data(nodes).join('g')
   .attr('class', 'graph-node')
-  .each(function(d) { d._el = this; })  // Save DOM reference for show/hide
   .call(d3.drag().on('start', (event, d) => {
     if (!event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x; d.fy = d.y;
@@ -797,7 +800,7 @@ node.on('mouseenter', (event, d) => {
 
 svg.on('click', () => { clearHighlight(); });
 
-// Highlight: connected nodes keep original, others vanish completely
+// Highlight: set globalVisible, restart simulation to apply via tick
 function highlightNode(d) {
   const connected = new Set([d.id]);
   validLinks.forEach(l => {
@@ -806,23 +809,14 @@ function highlightNode(d) {
     if (src === d.id) connected.add(tgt);
     if (tgt === d.id) connected.add(src);
   });
-  // Iterate nodes array (same references as D3 data binding) and set display
-  nodes.forEach(function(n) {
-    const show = connected.has(n.id) ? '' : 'none';
-    n._el && (n._el.style.display = show);
-  });
-  validLinks.forEach(function(l) {
-    const src = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    const show = (connected.has(src) && connected.has(tgt)) ? '' : 'none';
-    l._el && (l._el.style.display = show);
-  });
+  globalVisible.clear();
+  connected.forEach(id => globalVisible.add(id));
+  simulation.alpha(0.1).restart();
 }
 
 function clearHighlight() {
-  nodes.forEach(function(n) { n._el && (n._el.style.display = ''); });
-  validLinks.forEach(function(l) { l._el && (l._el.style.display = ''); });
-  linkLabels.each(function() { this.style.display = ''; });
+  nodes.forEach(n => globalVisible.add(n.id));
+  simulation.alpha(0.1).restart();
 }
 
 // ===== COLOR MODE SWITCHING =====
@@ -892,11 +886,10 @@ function toggleTypeFilter(type) {
 
 function applyFilters() {
   // Determine which nodes should be visible
-  const visibleNodes = new Set();
+  // Update globalVisible and restart simulation
+  globalVisible.clear();
   nodes.forEach(n => {
-    // Type filter check
     if (!activeTypeFilters.has(n.type)) return;
-    // School filter check
     if (currentSchoolFilter !== 'all') {
       if (n.type === 'school' && n.id !== currentSchoolFilter) return;
       if (n.type === 'scholar' && n.data.school !== currentSchoolFilter) return;
@@ -913,7 +906,6 @@ function applyFilters() {
         if (!s || s.school !== currentSchoolFilter) return;
       }
       if (n.type === 'topic') {
-        // Topic is visible if any of its scholars belong to the selected school
         const hasScholarInSchool = (n.data.scholars || []).some(sId => {
           const s = scholarMap[sId];
           return s && s.school === currentSchoolFilter;
@@ -921,49 +913,39 @@ function applyFilters() {
         if (!hasScholarInSchool) return;
       }
     }
-    visibleNodes.add(n.id);
-  });
-
-  // Apply visibility: visible = keep original, invisible = vanish
-  nodes.forEach(function(n) {
-    const show = visibleNodes.has(n.id) ? '' : 'none';
-    n._el && (n._el.style.display = show);
-  });
-  validLinks.forEach(function(l) {
-    const srcId = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
-    const show = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
-    l._el && (l._el.style.display = show);
-  });
-  linkLabels.each(function() {
-    const d = d3.select(this).datum();
-    if (!d) return;
-    const srcId = typeof d.source === 'object' ? d.source.id : d.source;
-    const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
-    this.style.display = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
+    globalVisible.add(n.id);
   });
 
   // Restart simulation with hidden nodes fixed to reduce jitter
-  simulation.nodes(nodes.map(n => ({ ...n, fx: visibleNodes.has(n.id) ? null : n.x, fy: visibleNodes.has(n.id) ? null : n.y })));
+  simulation.nodes(nodes.map(n => ({ ...n, fx: globalVisible.has(n.id) ? null : n.x, fy: globalVisible.has(n.id) ? null : n.y })));
   simulation.alpha(0.3).restart();
 }
 
-// Simulation tick
+// Simulation tick - apply visibility from globalVisible
 simulation.on('tick', () => {
   link.attr('x1', d => d.source && d.source.x != null ? d.source.x : 0)
     .attr('y1', d => d.source && d.source.y != null ? d.source.y : 0)
     .attr('x2', d => d.target && d.target.x != null ? d.target.x : 0)
-    .attr('y2', d => d.target && d.target.y != null ? d.target.y : 0);
+    .attr('y2', d => d.target && d.target.y != null ? d.target.y : 0)
+    .attr('opacity', d => {
+      const src = typeof d.source === 'object' ? d.source.id : d.source;
+      const tgt = typeof d.target === 'object' ? d.target.id : d.target;
+      return (globalVisible.has(src) && globalVisible.has(tgt)) ? 1 : 0;
+    });
   linkLabels.attr('transform', d => {
     if (!d.source || !d.target || d.source.x == null || d.target.x == null) return 'translate(0,0)';
     const mx = (d.source.x + d.target.x) / 2;
     const my = (d.source.y + d.target.y) / 2;
     return 'translate(' + mx + ',' + my + ')';
+  }).attr('opacity', d => {
+    const src = typeof d.source === 'object' ? d.source.id : d.source;
+    const tgt = typeof d.target === 'object' ? d.target.id : d.target;
+    return (globalVisible.has(src) && globalVisible.has(tgt)) ? 0.7 : 0;
   });
   node.attr('transform', d => {
     if (d.x == null || d.y == null) return 'translate(0,0)';
     return 'translate('+d.x+','+d.y+')';
-  });
+  }).attr('opacity', d => globalVisible.has(d.id) ? 1 : 0);
 });
 
 // Resize
