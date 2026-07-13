@@ -150,26 +150,7 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 768px) {
-  /* Force landscape on portrait screens */
-  @media (orientation: portrait) and (max-width: 768px) {
-    #app {
-      transform: rotate(90deg);
-      transform-origin: top left;
-      width: 100vh;
-      height: 100vw;
-      position: fixed;
-      top: 0; left: 0;
-      overflow: hidden;
-    }
-    body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
-    #bottom-tabs { transform: rotate(-90deg); transform-origin: bottom right; }
-  }
-
-  /* Mobile landscape layout */
+  /* Mobile layout - works in both portrait and landscape */
   #topbar { height: 40px; padding: 0 10px; gap: 8px; }
   #topbar h1 { font-size: 0.85rem; }
   #topbar .mode-btn { display: none; }
@@ -1077,7 +1058,29 @@ simulation.on('tick', () => {
 window.addEventListener('resize', () => {
   svg.attr('width', width()).attr('height', height());
   simulation.force('center', d3.forceCenter(width()/2, height()/2)).restart();
+  fitAllNodes();
 });
+
+// Auto-fit all nodes into view after simulation stabilizes
+function fitAllNodes() {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    if (n.x != null) { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); }
+    if (n.y != null) { minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); }
+  });
+  if (minX === Infinity) return;
+  const pad = 60;
+  const gw = maxX - minX + pad * 2;
+  const gh = maxY - minY + pad * 2;
+  const scale = Math.min(width() / gw, height() / gh, 2);
+  const tx = width() / 2 - (minX + maxX) / 2 * scale;
+  const ty = height() / 2 - (minY + maxY) / 2 * scale;
+  svg.transition().duration(800).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+
+// Initial auto-fit: wait for simulation to cool down then fit
+setTimeout(fitAllNodes, 3000);
+setTimeout(fitAllNodes, 6000);
 
 // ===== CARD PANEL =====
 // Helper: render adjacent node pills
