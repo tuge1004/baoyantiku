@@ -110,13 +110,36 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 .graph-node { cursor: pointer; transition: opacity 0.2s; }
 .graph-node:hover { filter: brightness(1.3); }
 .graph-node text { font-size: 11px; font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; }
-.graph-node text.node-label { font-size: 10px; fill: var(--muted); }
+.graph-node text.node-label { font-size: 10px; fill: var(--muted); transition: all 0.2s; }
+.graph-node.highlighted text.node-label { fill: var(--ink); font-weight: 700; font-size: 11px; }
+.graph-node.dimmed text.node-label { opacity: 0.2; }
 
 /* Link */
-.graph-link { stroke: var(--rule); stroke-opacity: 0.4; }
-.graph-link.highlight { stroke: var(--accent); stroke-opacity: 0.8; }
-.link-label { font-size: 9px; fill: var(--muted); font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; opacity: 0.6; }
-.link-label.highlight { fill: var(--accent); opacity: 1; }
+.graph-link { stroke: var(--rule); stroke-opacity: 0.4; transition: all 0.2s; }
+.graph-link.highlight { stroke: var(--accent); stroke-opacity: 0.9; stroke-width: 2px; }
+.graph-link.dimmed { stroke-opacity: 0.05; }
+.link-label { font-size: 9px; fill: var(--muted); font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; opacity: 0.6; transition: all 0.2s; }
+.link-label.highlight { fill: var(--accent); opacity: 1; font-weight: 700; font-size: 10px; }
+.link-label.dimmed { opacity: 0.05; }
+
+/* Filter panel */
+#filter-panel { background: var(--card); border-radius: 10px; padding: 14px; border: 1px solid var(--rule); }
+#filter-panel h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+.filter-group { margin-bottom: 12px; }
+.filter-group:last-child { margin-bottom: 0; }
+.filter-group-title { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+.filter-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-btn { padding: 4px 10px; border: 1px solid var(--rule); border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.72rem; transition: all 0.15s; font-family: inherit; }
+.filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+.filter-btn.active { background: var(--accent); color: #FFF; border-color: var(--accent); }
+.filter-btn.school-filter { border-color: var(--school1); }
+.filter-btn.school-filter:hover, .filter-btn.school-filter.active { background: var(--school1); color: #FFF; }
+.filter-btn.school-filter2 { border-color: var(--school2); }
+.filter-btn.school-filter2:hover, .filter-btn.school-filter2.active { background: var(--school2); color: #FFF; }
+.filter-btn.school-filter3 { border-color: var(--school3); }
+.filter-btn.school-filter3:hover, .filter-btn.school-filter3.active { background: var(--school3); color: #000; }
+.filter-btn.school-filter4 { border-color: var(--school4); }
+.filter-btn.school-filter4:hover, .filter-btn.school-filter4.active { background: var(--school4); color: #000; }
 
 /* Color mode buttons */
 #color-modes { display: flex; gap: 6px; margin-left: 8px; }
@@ -163,6 +186,31 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
       <div class="leg"><span class="dot" style="background:var(--theory)"></span>理论</div>
       <div class="leg"><span class="dot" style="background:var(--research)"></span>研究</div>
       <div class="leg"><span class="dot" style="background:var(--book)"></span>著作</div>
+    </div>
+    <div id="filter-panel">
+      <h4>筛选</h4>
+      <div class="filter-group">
+        <div class="filter-group-title">学派筛选</div>
+        <div class="filter-options">
+          <button class="filter-btn active" id="fs-all" onclick="setSchoolFilter('all')">全部</button>
+          <button class="filter-btn school-filter" id="fs-s1" onclick="setSchoolFilter('s1')">经验学派</button>
+          <button class="filter-btn school-filter2" id="fs-s2" onclick="setSchoolFilter('s2')">批判学派</button>
+          <button class="filter-btn school-filter3" id="fs-s3" onclick="setSchoolFilter('s3')">媒介环境</button>
+          <button class="filter-btn school-filter4" id="fs-s4" onclick="setSchoolFilter('s4')">芝加哥学派</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-title">层级筛选</div>
+        <div class="filter-options">
+          <button class="filter-btn active" id="ft-all" onclick="setTypeFilter('all')">全部</button>
+          <button class="filter-btn" id="ft-school" onclick="toggleTypeFilter('school')">学派</button>
+          <button class="filter-btn" id="ft-topic" onclick="toggleTypeFilter('topic')">专题</button>
+          <button class="filter-btn" id="ft-scholar" onclick="toggleTypeFilter('scholar')">人物</button>
+          <button class="filter-btn" id="ft-theory" onclick="toggleTypeFilter('theory')">理论</button>
+          <button class="filter-btn" id="ft-research" onclick="toggleTypeFilter('research')">研究</button>
+          <button class="filter-btn" id="ft-book" onclick="toggleTypeFilter('book')">著作</button>
+        </div>
+      </div>
     </div>
     <h3>点击节点查看详情</h3>
     <div id="card-container"><p style="color:var(--muted);font-size:0.8rem;">点击图谱中的节点或搜索来查看详细信息</p></div>
@@ -749,29 +797,52 @@ svg.on('click', () => { clearHighlight(); });
 // Highlight
 function highlightNode(d) {
   const connected = new Set([d.id]);
-  links.forEach(l => {
+  validLinks.forEach(l => {
     const src = typeof l.source === 'object' ? l.source.id : l.source;
     const tgt = typeof l.target === 'object' ? l.target.id : l.target;
     if (src === d.id) connected.add(tgt);
     if (tgt === d.id) connected.add(src);
   });
-  node.style('opacity', n => connected.has(n.id) ? 1 : 0.15);
-  link.style('stroke-opacity', l => {
-    const src = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    return (src === d.id || tgt === d.id) ? 0.9 : 0.05;
+  // Node highlighting: connected = bright + larger, others = dimmed
+  node.attr('class', n => {
+    if (!connected.has(n.id)) return 'graph-node dimmed';
+    return 'graph-node highlighted';
   });
-  linkLabels.style('opacity', l => {
+  node.select('circle').transition().duration(200)
+    .attr('r', n => connected.has(n.id) ? n.r * 1.35 : n.r)
+    .attr('stroke-width', n => connected.has(n.id) ? 2.5 : 1)
+    .attr('stroke', n => connected.has(n.id) ? '#FFF' : (n.type === 'school' ? n.color : 'rgba(255,255,255,0.3)'));
+  node.filter(n => n.type === 'topic').select('rect').transition().duration(200)
+    .attr('width', n => connected.has(n.id) ? (n.label.length * 11 + 20) * 1.1 : (n.label.length * 11 + 20))
+    .attr('height', n => connected.has(n.id) ? 26 : 22)
+    .attr('stroke-width', n => connected.has(n.id) ? 2.5 : 1)
+    .attr('stroke', n => connected.has(n.id) ? '#FFF' : n.color);
+  // Link highlighting
+  link.attr('class', l => {
     const src = typeof l.source === 'object' ? l.source.id : l.source;
     const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    return (src === d.id || tgt === d.id) ? 1 : 0.05;
+    return (src === d.id || tgt === d.id) ? 'graph-link highlight' : 'graph-link dimmed';
+  });
+  linkLabels.attr('class', l => {
+    const src = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+    return (src === d.id || tgt === d.id) ? 'link-label highlight' : 'link-label dimmed';
   });
 }
 
 function clearHighlight() {
-  node.style('opacity', 1);
-  link.style('stroke-opacity', 0.4);
-  linkLabels.style('opacity', 0.6);
+  node.attr('class', 'graph-node');
+  node.select('circle').transition().duration(200)
+    .attr('r', n => n.r)
+    .attr('stroke-width', n => n.type === 'school' ? 2 : 1)
+    .attr('stroke', n => n.type === 'school' ? n.color : 'rgba(255,255,255,0.3)');
+  node.filter(n => n.type === 'topic').select('rect').transition().duration(200)
+    .attr('width', n => n.label.length * 11 + 20)
+    .attr('height', 22)
+    .attr('stroke-width', 1)
+    .attr('stroke', n => n.color);
+  link.attr('class', 'graph-link');
+  linkLabels.attr('class', 'link-label');
 }
 
 // ===== COLOR MODE SWITCHING =====
@@ -802,6 +873,101 @@ function setColorMode(mode) {
     node.select('circle').transition().duration(400).attr('fill', d => typeColorMap[d.type] || d.color);
     node.filter(d => d.type === 'topic').select('rect').transition().duration(400).attr('fill', d => typeColorMap[d.type]);
   }
+}
+
+// ===== FILTER LOGIC =====
+let currentSchoolFilter = 'all';
+let activeTypeFilters = new Set(['school','topic','scholar','theory','research','book']);
+
+function setSchoolFilter(schoolId) {
+  currentSchoolFilter = schoolId;
+  // Update button states
+  document.querySelectorAll('[id^="fs-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('fs-' + schoolId).classList.add('active');
+  applyFilters();
+}
+
+function setTypeFilter(mode) {
+  if (mode === 'all') {
+    activeTypeFilters = new Set(['school','topic','scholar','theory','research','book']);
+  }
+  document.querySelectorAll('[id^="ft-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('ft-all').classList.add('active');
+  applyFilters();
+}
+
+function toggleTypeFilter(type) {
+  const btn = document.getElementById('ft-' + type);
+  if (activeTypeFilters.has(type)) {
+    activeTypeFilters.delete(type);
+    btn.classList.remove('active');
+  } else {
+    activeTypeFilters.add(type);
+    btn.classList.add('active');
+  }
+  // Update "all" button
+  document.getElementById('ft-all').classList.toggle('active', activeTypeFilters.size === 6);
+  applyFilters();
+}
+
+function applyFilters() {
+  // Determine which nodes should be visible
+  const visibleNodes = new Set();
+  nodes.forEach(n => {
+    // Type filter check
+    if (!activeTypeFilters.has(n.type)) return;
+    // School filter check
+    if (currentSchoolFilter !== 'all') {
+      if (n.type === 'school' && n.id !== currentSchoolFilter) return;
+      if (n.type === 'scholar' && n.data.school !== currentSchoolFilter) return;
+      if (n.type === 'theory') {
+        const s = scholarMap[n.data.scholar];
+        if (!s || s.school !== currentSchoolFilter) return;
+      }
+      if (n.type === 'research') {
+        const s = scholarMap[n.data.scholar];
+        if (!s || s.school !== currentSchoolFilter) return;
+      }
+      if (n.type === 'book') {
+        const s = scholarMap[n.data.scholar];
+        if (!s || s.school !== currentSchoolFilter) return;
+      }
+      if (n.type === 'topic') {
+        // Topic is visible if any of its scholars belong to the selected school
+        const hasScholarInSchool = (n.data.scholars || []).some(sId => {
+          const s = scholarMap[sId];
+          return s && s.school === currentSchoolFilter;
+        });
+        if (!hasScholarInSchool) return;
+      }
+    }
+    visibleNodes.add(n.id);
+  });
+
+  // Apply visibility to nodes
+  node.transition().duration(400)
+    .style('opacity', n => visibleNodes.has(n.id) ? 1 : 0.05)
+    .style('pointer-events', n => visibleNodes.has(n.id) ? 'all' : 'none');
+
+  // Apply visibility to links (both endpoints must be visible)
+  link.transition().duration(400)
+    .style('stroke-opacity', l => {
+      const srcId = typeof l.source === 'object' ? l.source.id : l.source;
+      const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
+      return (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? 0.4 : 0.02;
+    });
+
+  // Apply visibility to link labels
+  linkLabels.transition().duration(400)
+    .style('opacity', l => {
+      const srcId = typeof l.source === 'object' ? l.source.id : l.source;
+      const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
+      return (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? 0.6 : 0.02;
+    });
+
+  // Restart simulation with hidden nodes fixed to reduce jitter
+  simulation.nodes(nodes.map(n => ({ ...n, fx: visibleNodes.has(n.id) ? null : n.x, fy: visibleNodes.has(n.id) ? null : n.y })));
+  simulation.alpha(0.3).restart();
 }
 
 // Simulation tick
