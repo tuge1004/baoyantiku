@@ -118,7 +118,7 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 .graph-link { stroke: var(--rule); stroke-opacity: 0.6; transition: all 0.2s; }
 .graph-link.highlight { stroke: var(--accent); stroke-opacity: 0.9; stroke-width: 2px; }
 .graph-link.dimmed { stroke-opacity: 0.05; }
-.link-label { font-size: 10px; fill: #AAAACC; font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; opacity: 0.85; transition: all 0.2s; }
+.link-label { font-size: 10px; fill: #CCCCEE; font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; paint-order: stroke; stroke: rgba(10,10,30,0.8); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; transition: all 0.2s; }
 .link-label.highlight { fill: var(--accent); opacity: 1; font-weight: 700; font-size: 10px; }
 .link-label.dimmed { opacity: 0.05; }
 
@@ -946,10 +946,10 @@ simulation.on('tick', () => {
       return (globalVisible.has(src) && globalVisible.has(tgt)) ? 1 : 0;
     });
   linkLabels.attr('transform', d => {
-    if (!d.source || !d.target || d.source.x == null || d.target.x == null) return 'translate(0,0)';
-    const mx = (d.source.x + d.target.x) / 2;
-    const my = (d.source.y + d.target.y) / 2;
-    return 'translate(' + mx + ',' + my + ')';
+    if (!d.source || !d.target) return 'translate(0,0)';
+    const sx = d.source.x || 0, sy = d.source.y || 0;
+    const tx = d.target.x || 0, ty = d.target.y || 0;
+    return 'translate(' + ((sx+tx)/2) + ',' + ((sy+ty)/2) + ')';
   }).attr('opacity', d => {
     const src = typeof d.source === 'object' ? d.source.id : d.source;
     const tgt = typeof d.target === 'object' ? d.target.id : d.target;
