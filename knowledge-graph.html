@@ -187,31 +187,7 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
       <div class="leg"><span class="dot" style="background:var(--research)"></span>研究</div>
       <div class="leg"><span class="dot" style="background:var(--book)"></span>著作</div>
     </div>
-    <div id="filter-panel">
-      <h4>筛选</h4>
-      <div class="filter-group">
-        <div class="filter-group-title">学派筛选</div>
-        <div class="filter-options">
-          <button class="filter-btn active" id="fs-all" onclick="setSchoolFilter('all')">全部</button>
-          <button class="filter-btn school-filter" id="fs-s1" onclick="setSchoolFilter('s1')">经验学派</button>
-          <button class="filter-btn school-filter2" id="fs-s2" onclick="setSchoolFilter('s2')">批判学派</button>
-          <button class="filter-btn school-filter3" id="fs-s3" onclick="setSchoolFilter('s3')">媒介环境</button>
-          <button class="filter-btn school-filter4" id="fs-s4" onclick="setSchoolFilter('s4')">芝加哥学派</button>
-        </div>
-      </div>
-      <div class="filter-group">
-        <div class="filter-group-title">层级筛选</div>
-        <div class="filter-options">
-          <button class="filter-btn active" id="ft-all" onclick="setTypeFilter('all')">全部</button>
-          <button class="filter-btn" id="ft-school" onclick="setTypeFilter('school')">学派</button>
-          <button class="filter-btn" id="ft-topic" onclick="setTypeFilter('topic')">专题</button>
-          <button class="filter-btn" id="ft-scholar" onclick="setTypeFilter('scholar')">人物</button>
-          <button class="filter-btn" id="ft-theory" onclick="setTypeFilter('theory')">理论</button>
-          <button class="filter-btn" id="ft-research" onclick="setTypeFilter('research')">研究</button>
-          <button class="filter-btn" id="ft-book" onclick="setTypeFilter('book')">著作</button>
-        </div>
-      </div>
-    </div>
+
     <h3>点击节点查看详情</h3>
     <div id="card-container"><p style="color:var(--muted);font-size:0.8rem;">点击图谱中的节点或搜索来查看详细信息</p></div>
     <div id="game-area">
@@ -690,8 +666,6 @@ const validNodeIds = new Set(nodes.map(n => n.id));
 const validLinks = links.filter(l => validNodeIds.has(l.source) && validNodeIds.has(l.target));
 console.log('Nodes:', nodes.length, 'Links:', links.length, 'Valid links:', validLinks.length);
 
-// Global visibility: set of node ids that should be visible
-const globalVisible = new Set(nodes.map(n => n.id));
 // Build link-to-node map for fast lookup
 const linkNodeMap = new Map();
 validLinks.forEach((l, i) => { linkNodeMap.set(i, { src: l.source, tgt: l.target }); });
@@ -813,23 +787,13 @@ node.on('mouseenter', (event, d) => {
 
 svg.on('click', () => { clearHighlight(); });
 
-// Highlight: set globalVisible, restart simulation to apply via tick
 function highlightNode(d) {
-  const connected = new Set([d.id]);
-  validLinks.forEach(l => {
-    const src = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    if (src === d.id) connected.add(tgt);
-    if (tgt === d.id) connected.add(src);
-  });
-  globalVisible.clear();
-  connected.forEach(id => globalVisible.add(id));
-  simulation.alpha(0.1).restart();
+  // Just show detail card, no hiding
+  showDetailCard(d);
 }
 
 function clearHighlight() {
-  nodes.forEach(n => globalVisible.add(n.id));
-  simulation.alpha(0.1).restart();
+  // No-op since we no longer hide nodes
 }
 
 // ===== COLOR MODE SWITCHING =====
@@ -862,87 +826,13 @@ function setColorMode(mode) {
   }
 }
 
-// ===== FILTER LOGIC =====
-let currentSchoolFilter = 'all';
-let currentTypeFilter = 'all'; // 'all' or a single type like 'scholar'
-
-function setSchoolFilter(schoolId) {
-  currentSchoolFilter = schoolId;
-  document.querySelectorAll('[id^="fs-"]').forEach(b => b.classList.remove('active'));
-  document.getElementById('fs-' + schoolId).classList.add('active');
-  applyFilters();
-}
-
-function setTypeFilter(type) {
-  if (currentTypeFilter === type) {
-    // Clicking the active type again resets to all
-    currentTypeFilter = 'all';
-  } else {
-    currentTypeFilter = type;
-  }
-  // Update button states
-  document.querySelectorAll('[id^="ft-"]').forEach(b => b.classList.remove('active'));
-  document.getElementById('ft-' + currentTypeFilter).classList.add('active');
-  applyFilters();
-}
-
-function applyFilters() {
-  // Update globalVisible based on type + school filters
-  globalVisible.clear();
-  nodes.forEach(n => {
-    // Type filter: if not 'all', only show that type
-    if (currentTypeFilter !== 'all' && n.type !== currentTypeFilter) return;
-    // School filter
-    if (currentSchoolFilter !== 'all') {
-      if (n.type === 'school' && n.id !== currentSchoolFilter) return;
-      if (n.type === 'scholar' && n.data.school !== currentSchoolFilter) return;
-      if (n.type === 'theory') {
-        const s = scholarMap[n.data.scholar];
-        if (!s || s.school !== currentSchoolFilter) return;
-      }
-      if (n.type === 'research') {
-        const s = scholarMap[n.data.scholar];
-        if (!s || s.school !== currentSchoolFilter) return;
-      }
-      if (n.type === 'book') {
-        const s = scholarMap[n.data.scholar];
-        if (!s || s.school !== currentSchoolFilter) return;
-      }
-      if (n.type === 'topic') {
-        const hasScholarInSchool = (n.data.scholars || []).some(sId => {
-          const s = scholarMap[sId];
-          return s && s.school === currentSchoolFilter;
-        });
-        if (!hasScholarInSchool) return;
-      }
-    }
-    globalVisible.add(n.id);
-  });
-
-  // Fix hidden nodes in place, unfix visible nodes
-  nodes.forEach(n => {
-    if (globalVisible.has(n.id)) {
-      n.fx = null; n.fy = null;
-    } else {
-      if (n.fx == null) { n.fx = n.x; n.fy = n.y; }
-    }
-  });
-  simulation.alpha(0.3).restart();
-}
-
-// Simulation tick - apply visibility from globalVisible
+// Simulation tick
 simulation.on('tick', () => {
   link.attr('x1', d => d.source && d.source.x != null ? d.source.x : 0)
     .attr('y1', d => d.source && d.source.y != null ? d.source.y : 0)
     .attr('x2', d => d.target && d.target.x != null ? d.target.x : 0)
-    .attr('y2', d => d.target && d.target.y != null ? d.target.y : 0)
-    .each(function(d) {
-      const src = typeof d.source === 'object' ? d.source.id : d.source;
-      const tgt = typeof d.target === 'object' ? d.target.id : d.target;
-      this.style.opacity = (globalVisible.has(src) && globalVisible.has(tgt)) ? '1' : '0';
-    });
+    .attr('y2', d => d.target && d.target.y != null ? d.target.y : 0);
   // Update link label positions
-  // Update link label positions + visibility
   linkLabelSelection.each(function(d) {
     const sx = d.source ? d.source.x || 0 : 0;
     const sy = d.source ? d.source.y || 0 : 0;
@@ -950,15 +840,10 @@ simulation.on('tick', () => {
     const ty = d.target ? d.target.y || 0 : 0;
     this.setAttribute('x', (sx + tx) / 2);
     this.setAttribute('y', (sy + ty) / 2);
-    const srcId = typeof d.source === 'object' ? d.source.id : d.source;
-    const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
-    this.style.opacity = (globalVisible.has(srcId) && globalVisible.has(tgtId)) ? '0.9' : '0';
   });
   node.attr('transform', d => {
     if (d.x == null || d.y == null) return 'translate(0,0)';
     return 'translate('+d.x+','+d.y+')';
-  }).each(function(d) {
-    this.style.opacity = globalVisible.has(d.id) ? '1' : '0';
   });
 });
 
