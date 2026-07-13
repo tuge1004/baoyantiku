@@ -741,12 +741,12 @@ const link = g.selectAll('line').data(validLinks).join('line')
 
 // Link labels (relationship text)
 const linkTypeMap = { belongs: '属于', proposed: '提出', conducted: '研究', wrote: '著作', topic: '涉及' };
-const linkLabels = g.selectAll('.link-label-group').data(validLinks).join('g').attr('class', 'link-label-group');
-linkLabels.append('text')
+// Create label text elements using D3 append on the g container
+const linkLabelSelection = g.selectAll('.link-label-el').data(validLinks).join('text')
   .attr('class', 'link-label')
-  .text(d => linkTypeMap[d.type] || '')
   .attr('text-anchor', 'middle')
-  .attr('dy', -3);
+  .attr('dy', -3)
+  .text((d, i) => linkTypeMap[d.type] || '');
 
 // Nodes
 const node = g.selectAll('g').data(nodes).join('g')
@@ -945,16 +945,15 @@ simulation.on('tick', () => {
       const tgt = typeof d.target === 'object' ? d.target.id : d.target;
       return (globalVisible.has(src) && globalVisible.has(tgt)) ? 1 : 0;
     });
-  linkLabels.attr('transform', d => {
-    if (!d.source || !d.target) return 'translate(0,0)';
-    const sx = d.source.x || 0, sy = d.source.y || 0;
-    const tx = d.target.x || 0, ty = d.target.y || 0;
-    return 'translate(' + ((sx+tx)/2) + ',' + ((sy+ty)/2) + ')';
-  }).attr('opacity', d => {
-    const src = typeof d.source === 'object' ? d.source.id : d.source;
-    const tgt = typeof d.target === 'object' ? d.target.id : d.target;
-    return (globalVisible.has(src) && globalVisible.has(tgt)) ? 0.9 : 0;
-  });
+  // Update link label positions
+  linkLabelSelection
+    .attr('x', d => ((d.source.x || 0) + (d.target.x || 0)) / 2)
+    .attr('y', d => ((d.source.y || 0) + (d.target.y || 0)) / 2)
+    .attr('opacity', d => {
+      const srcId = typeof d.source === 'object' ? d.source.id : d.source;
+      const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
+      return (globalVisible.has(srcId) && globalVisible.has(tgtId)) ? 0.9 : 0;
+    });
   node.attr('transform', d => {
     if (d.x == null || d.y == null) return 'translate(0,0)';
     return 'translate('+d.x+','+d.y+')';
