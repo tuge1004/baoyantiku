@@ -712,6 +712,7 @@ const simulation = d3.forceSimulation(nodes)
 // Links
 const link = g.selectAll('line').data(validLinks).join('line')
   .attr('class', 'graph-link')
+  .each(function(d) { d._el = this; })
   .attr('stroke-width', d => {
     if (d.type === 'belongs') return 1.8;
     if (d.type === 'topic') return 1.2;
@@ -722,7 +723,8 @@ const link = g.selectAll('line').data(validLinks).join('line')
 
 // Link labels (relationship text)
 const linkTypeMap = { belongs: '属于', proposed: '提出', conducted: '研究', wrote: '著作', topic: '涉及' };
-const linkLabels = g.selectAll('.link-label-group').data(validLinks).join('g').attr('class', 'link-label-group');
+const linkLabels = g.selectAll('.link-label-group').data(validLinks).join('g').attr('class', 'link-label-group')
+  .each(function(d) { d._el = this; });
 linkLabels.append('text')
   .attr('class', 'link-label')
   .text(d => linkTypeMap[d.type] || '')
@@ -732,6 +734,7 @@ linkLabels.append('text')
 // Nodes
 const node = g.selectAll('g').data(nodes).join('g')
   .attr('class', 'graph-node')
+  .each(function(d) { d._el = this; })  // Save DOM reference for show/hide
   .call(d3.drag().on('start', (event, d) => {
     if (!event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x; d.fy = d.y;
@@ -803,24 +806,22 @@ function highlightNode(d) {
     if (src === d.id) connected.add(tgt);
     if (tgt === d.id) connected.add(src);
   });
-  node.each(function(n) {
-    this.style.display = connected.has(n.id) ? '' : 'none';
+  // Iterate nodes array (same references as D3 data binding) and set display
+  nodes.forEach(function(n) {
+    const show = connected.has(n.id) ? '' : 'none';
+    n._el && (n._el.style.display = show);
   });
-  link.each(function(l) {
+  validLinks.forEach(function(l) {
     const src = typeof l.source === 'object' ? l.source.id : l.source;
     const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    this.style.display = (connected.has(src) && connected.has(tgt)) ? '' : 'none';
-  });
-  linkLabels.each(function(l) {
-    const src = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-    this.style.display = (connected.has(src) && connected.has(tgt)) ? '' : 'none';
+    const show = (connected.has(src) && connected.has(tgt)) ? '' : 'none';
+    l._el && (l._el.style.display = show);
   });
 }
 
 function clearHighlight() {
-  node.each(function() { this.style.display = ''; });
-  link.each(function() { this.style.display = ''; });
+  nodes.forEach(function(n) { n._el && (n._el.style.display = ''); });
+  validLinks.forEach(function(l) { l._el && (l._el.style.display = ''); });
   linkLabels.each(function() { this.style.display = ''; });
 }
 
@@ -924,17 +925,21 @@ function applyFilters() {
   });
 
   // Apply visibility: visible = keep original, invisible = vanish
-  node.each(function(n) {
-    this.style.display = visibleNodes.has(n.id) ? '' : 'none';
+  nodes.forEach(function(n) {
+    const show = visibleNodes.has(n.id) ? '' : 'none';
+    n._el && (n._el.style.display = show);
   });
-  link.each(function(l) {
+  validLinks.forEach(function(l) {
     const srcId = typeof l.source === 'object' ? l.source.id : l.source;
     const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
-    this.style.display = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
+    const show = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
+    l._el && (l._el.style.display = show);
   });
-  linkLabels.each(function(l) {
-    const srcId = typeof l.source === 'object' ? l.source.id : l.source;
-    const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
+  linkLabels.each(function() {
+    const d = d3.select(this).datum();
+    if (!d) return;
+    const srcId = typeof d.source === 'object' ? d.source.id : d.source;
+    const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
     this.style.display = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
   });
 
