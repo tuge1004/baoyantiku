@@ -150,12 +150,124 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 768px) {
-  #side-panel { width: 300px; font-size: 0.8rem; }
-  #topbar h1 { font-size: 0.9rem; }
+  /* Portrait orientation warning */
+  #portrait-warning {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    padding: 20px;
+  }
+  #portrait-warning .rotate-icon {
+    font-size: 48px;
+    animation: rotatePhone 2s ease-in-out infinite;
+  }
+  @keyframes rotatePhone {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+  }
+  @media (orientation: portrait) {
+    #portrait-warning { display: flex; }
+    #app { display: none; }
+  }
+
+  /* Mobile landscape layout */
+  #topbar { height: 40px; padding: 0 10px; gap: 8px; }
+  #topbar h1 { font-size: 0.85rem; }
+  #topbar .mode-btn { display: none; }
+  #topbar #color-modes { display: none; }
+  #topbar .hint { display: none; }
+  #graph-canvas { margin-top: 40px; }
+  #graph-canvas .zoom-hint {
+    font-size: 0.6rem;
+    bottom: 56px;
+    background: rgba(15,15,26,0.8);
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+  #side-panel {
+    position: fixed;
+    top: 40px; right: 0; bottom: 48px;
+    width: 85vw;
+    max-width: 340px;
+    margin-top: 0;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+    padding: 12px;
+    gap: 8px;
+  }
+  #side-panel.open { transform: translateX(0); }
+  #side-panel-overlay {
+    display: none;
+    position: fixed;
+    top: 40px; left: 0; right: 0; bottom: 48px;
+    background: rgba(0,0,0,0.5);
+    z-index: 49;
+  }
+  #side-panel-overlay.show { display: block; }
+
+  /* Bottom tab bar */
+  #bottom-tabs {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 48px;
+    background: var(--bg2);
+    border-top: 1px solid var(--rule);
+    z-index: 60;
+  }
+  #bottom-tabs .tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    border-top: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  #bottom-tabs .tab.active {
+    color: var(--accent);
+    border-top-color: var(--accent);
+    background: rgba(124,111,240,0.08);
+  }
+
+  /* Mobile side panel content adjustments */
+  #side-panel h3 { font-size: 0.8rem; }
+  .card { padding: 12px; }
+  .card .card-title { font-size: 0.95rem; }
+  .game-question { font-size: 0.9rem; padding: 12px; }
+  .filter-options { gap: 4px; }
+  .filter-btn { padding: 4px 8px; font-size: 0.7rem; }
+}
+
+@media (min-width: 769px) {
+  #bottom-tabs { display: none; }
+  #side-panel-overlay { display: none; }
+  #portrait-warning { display: none; }
 }
 </style>
 </head>
 <body>
+<!-- Portrait orientation warning -->
+<div id="portrait-warning">
+  <div class="rotate-icon">📱</div>
+  <h2>请旋转手机</h2>
+  <p style="color:var(--muted);font-size:0.9rem;">知识图谱为横屏优化<br>请将手机转为横屏浏览</p>
+</div>
+
 <div id="app">
   <div id="topbar">
     <h1>新传知识图谱</h1>
@@ -236,6 +348,20 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
       </div>
       <div class="game-feedback" id="game-feedback"></div>
     </div>
+  </div>
+  <!-- Side panel overlay for mobile -->
+  <div id="side-panel-overlay" onclick="closeSidePanel()"></div>
+  <!-- Bottom tab bar for mobile -->
+  <div id="bottom-tabs">
+    <button class="tab active" id="tab-graph" onclick="setMobileTab('graph')">
+      <span>🕸️</span> 图谱
+    </button>
+    <button class="tab" id="tab-search" onclick="setMobileTab('search')">
+      <span>🔍</span> 搜索
+    </button>
+    <button class="tab" id="tab-game" onclick="setMobileTab('game')">
+      <span>🎮</span> 填空
+    </button>
   </div>
 </div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -664,18 +790,25 @@ DATA.books.forEach(b => {
 
 // ===== D3 FORCE GRAPH =====
 const container = document.getElementById('graph-canvas');
-const svg = d3.select('#graph-canvas').append('svg');
+const svg = d3.select('#graph-canvas').append('svg')
+  .style('touch-action', 'none'); // Allow D3 to handle all touch gestures
 const width = () => container.clientWidth;
 const height = () => container.clientHeight;
 svg.attr('width', width()).attr('height', height());
 
 const g = svg.append('g');
 
-// Zoom
+// Zoom with touch support
 const zoom = d3.zoom().scaleExtent([0.2, 4]).on('zoom', (event) => {
   g.attr('transform', event.transform);
 });
-svg.call(zoom);
+svg.call(zoom)
+  .on('touchstart', function(event) {
+    // Prevent default only on multi-touch (pinch), allow single touch for node clicks
+    if (event.touches && event.touches.length > 1) {
+      event.preventDefault();
+    }
+  }, { passive: false });
 
 // Tooltip
 const tooltip = d3.select('#graph-canvas').append('div')
@@ -1236,18 +1369,49 @@ let currentGameQ = null;
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#bottom-tabs .tab').forEach(b => b.classList.remove('active'));
   if (mode === 'graph') {
     document.querySelector('.mode-btn:nth-child(2)').classList.add('active');
+    document.getElementById('tab-graph').classList.add('active');
     gameArea.classList.remove('active');
     cardContainer.style.display = 'block';
     gameScoreEl.textContent = '';
-  } else {
+    closeSidePanel();
+  } else if (mode === 'game') {
     document.querySelector('.mode-btn:nth-child(3)').classList.add('active');
+    document.getElementById('tab-game').classList.add('active');
     gameArea.classList.add('active');
     cardContainer.style.display = 'none';
     gameScoreEl.textContent = '\u2B50 '+gameScore+'\u5206';
     nextGameQuestion();
+    openSidePanel();
+  } else if (mode === 'search') {
+    document.getElementById('tab-search').classList.add('active');
+    gameArea.classList.remove('active');
+    cardContainer.style.display = 'block';
+    gameScoreEl.textContent = '';
+    openSidePanel();
   }
+}
+
+function setMobileTab(tab) {
+  if (tab === 'graph') {
+    setMode('graph');
+  } else if (tab === 'search') {
+    setMode('search');
+  } else if (tab === 'game') {
+    setMode('game');
+  }
+}
+
+function openSidePanel() {
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('side-panel-overlay').classList.add('show');
+}
+
+function closeSidePanel() {
+  document.getElementById('side-panel').classList.remove('open');
+  document.getElementById('side-panel-overlay').classList.remove('show');
 }
 
 // ===== FILL-IN-THE-BLANK GAME =====
