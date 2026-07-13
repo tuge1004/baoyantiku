@@ -203,12 +203,12 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
         <div class="filter-group-title">层级筛选</div>
         <div class="filter-options">
           <button class="filter-btn active" id="ft-all" onclick="setTypeFilter('all')">全部</button>
-          <button class="filter-btn" id="ft-school" onclick="toggleTypeFilter('school')">学派</button>
-          <button class="filter-btn" id="ft-topic" onclick="toggleTypeFilter('topic')">专题</button>
-          <button class="filter-btn" id="ft-scholar" onclick="toggleTypeFilter('scholar')">人物</button>
-          <button class="filter-btn" id="ft-theory" onclick="toggleTypeFilter('theory')">理论</button>
-          <button class="filter-btn" id="ft-research" onclick="toggleTypeFilter('research')">研究</button>
-          <button class="filter-btn" id="ft-book" onclick="toggleTypeFilter('book')">著作</button>
+          <button class="filter-btn" id="ft-school" onclick="setTypeFilter('school')">学派</button>
+          <button class="filter-btn" id="ft-topic" onclick="setTypeFilter('topic')">专题</button>
+          <button class="filter-btn" id="ft-scholar" onclick="setTypeFilter('scholar')">人物</button>
+          <button class="filter-btn" id="ft-theory" onclick="setTypeFilter('theory')">理论</button>
+          <button class="filter-btn" id="ft-research" onclick="setTypeFilter('research')">研究</button>
+          <button class="filter-btn" id="ft-book" onclick="setTypeFilter('book')">著作</button>
         </div>
       </div>
     </div>
@@ -864,44 +864,35 @@ function setColorMode(mode) {
 
 // ===== FILTER LOGIC =====
 let currentSchoolFilter = 'all';
-let activeTypeFilters = new Set(['school','topic','scholar','theory','research','book']);
+let currentTypeFilter = 'all'; // 'all' or a single type like 'scholar'
 
 function setSchoolFilter(schoolId) {
   currentSchoolFilter = schoolId;
-  // Update button states
   document.querySelectorAll('[id^="fs-"]').forEach(b => b.classList.remove('active'));
   document.getElementById('fs-' + schoolId).classList.add('active');
   applyFilters();
 }
 
-function setTypeFilter(mode) {
-  if (mode === 'all') {
-    activeTypeFilters = new Set(['school','topic','scholar','theory','research','book']);
-  }
-  document.querySelectorAll('[id^="ft-"]').forEach(b => b.classList.remove('active'));
-  document.getElementById('ft-all').classList.add('active');
-  applyFilters();
-}
-
-function toggleTypeFilter(type) {
-  const btn = document.getElementById('ft-' + type);
-  if (activeTypeFilters.has(type)) {
-    activeTypeFilters.delete(type);
-    btn.classList.remove('active');
+function setTypeFilter(type) {
+  if (currentTypeFilter === type) {
+    // Clicking the active type again resets to all
+    currentTypeFilter = 'all';
   } else {
-    activeTypeFilters.add(type);
-    btn.classList.add('active');
+    currentTypeFilter = type;
   }
-  // Update "all" button
-  document.getElementById('ft-all').classList.toggle('active', activeTypeFilters.size === 6);
+  // Update button states
+  document.querySelectorAll('[id^="ft-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('ft-' + currentTypeFilter).classList.add('active');
   applyFilters();
 }
 
 function applyFilters() {
-  // Update globalVisible
+  // Update globalVisible based on type + school filters
   globalVisible.clear();
   nodes.forEach(n => {
-    if (!activeTypeFilters.has(n.type)) return;
+    // Type filter: if not 'all', only show that type
+    if (currentTypeFilter !== 'all' && n.type !== currentTypeFilter) return;
+    // School filter
     if (currentSchoolFilter !== 'all') {
       if (n.type === 'school' && n.id !== currentSchoolFilter) return;
       if (n.type === 'scholar' && n.data.school !== currentSchoolFilter) return;
@@ -928,7 +919,7 @@ function applyFilters() {
     globalVisible.add(n.id);
   });
 
-  // Fix hidden nodes in place, unfix visible nodes - modify original objects, NOT copy
+  // Fix hidden nodes in place, unfix visible nodes
   nodes.forEach(n => {
     if (globalVisible.has(n.id)) {
       n.fx = null; n.fy = null;
