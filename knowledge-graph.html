@@ -54,6 +54,28 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 .tag-school3 { color: var(--school3) !important; border-color: var(--school3) !important; }
 .tag-school4 { color: var(--school4) !important; border-color: var(--school4) !important; }
 
+/* Adjacent nodes in card */
+.adjacent-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.adjacent-item { padding: 4px 10px; border-radius: 6px; font-size: 0.76rem; background: var(--bg); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; transition: all 0.15s; }
+.adjacent-item:hover { background: var(--accent); color: #FFF; border-color: var(--accent); }
+.adjacent-item.school { border-color: var(--school1); color: var(--school1); }
+.adjacent-item.school:hover { background: var(--school1); color: #FFF; }
+.adjacent-item.topic { border-color: #FF8C42; color: #FF8C42; }
+.adjacent-item.topic:hover { background: #FF8C42; color: #FFF; }
+.adjacent-item.scholar { border-color: var(--scholar); color: var(--scholar); }
+.adjacent-item.scholar:hover { background: var(--scholar); color: #000; }
+.adjacent-item.theory { border-color: var(--theory); color: var(--theory); }
+.adjacent-item.theory:hover { background: var(--theory); color: #000; }
+.adjacent-item.research { border-color: var(--research); color: var(--research); }
+.adjacent-item.research:hover { background: var(--research); color: #FFF; }
+.adjacent-item.book { border-color: var(--book); color: var(--book); }
+.adjacent-item.book:hover { background: var(--book); color: #FFF; }
+
+.card .card-detail { font-size: 0.78rem; line-height: 1.7; color: var(--ink); margin-top: 6px; }
+.card .card-detail .detail-row { display: flex; gap: 8px; margin-bottom: 4px; }
+.card .card-detail .detail-row .detail-key { color: var(--muted); min-width: 60px; flex-shrink: 0; }
+.card .card-detail .detail-row .detail-val { color: var(--ink); }
+
 /* Search */
 #search-wrap { position: relative; }
 #search-input { width: 100%; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); color: var(--ink); font-size: 0.85rem; outline: none; font-family: inherit; }
@@ -807,6 +829,33 @@ window.addEventListener('resize', () => {
 });
 
 // ===== CARD PANEL =====
+// Helper: render adjacent node pills
+function adjPill(id, type, label) {
+  const typeClass = type;
+  return '<span class="adjacent-item '+typeClass+'" onclick="focusNode(\''+id+'\',\''+type+'\');event.stopPropagation();">'+label+'</span>';
+}
+
+// Helper: find all neighbors via links
+function findNeighbors(d) {
+  const neighbors = [];
+  const seen = new Set();
+  validLinks.forEach(l => {
+    const srcId = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
+    if (srcId === d.id && !seen.has(tgtId)) {
+      seen.add(tgtId);
+      const n = nodes.find(n => n.id === tgtId);
+      if (n) neighbors.push({ id: tgtId, type: n.type, label: n.label, rel: l.type });
+    }
+    if (tgtId === d.id && !seen.has(srcId)) {
+      seen.add(srcId);
+      const n = nodes.find(n => n.id === srcId);
+      if (n) neighbors.push({ id: srcId, type: n.type, label: n.label, rel: l.type });
+    }
+  });
+  return neighbors;
+}
+
 function showCard(d) {
   const container = document.getElementById('card-container');
   const data = d.data;
@@ -814,63 +863,192 @@ function showCard(d) {
   const typeMap = { school:'学派', topic:'专题', scholar:'人物', theory:'理论', research:'研究', book:'著作' };
   const typeName = typeMap[d.type] || '';
   const color = d.color;
+  const neighbors = findNeighbors(d);
 
   html += '<div class="card" style="border-left:3px solid '+color+'">';
   html += '<div class="card-type" style="color:'+color+'">'+typeName+'</div>';
   html += '<div class="card-title">'+(data.name || data.label)+'</div>';
 
+  // === TOPIC ===
   if (d.type === 'topic') {
     html += '<div class="card-sub">'+data.en+'</div>';
     html += '<div class="card-section"><div class="label">专题简介</div><div class="value">'+data.desc+'</div></div>';
+
     const srs = (data.scholars || []).map(sId => scholarMap[sId]).filter(Boolean);
     if (srs.length > 0) {
-      html += '<div class="card-section"><div class="label">相关学者</div><div class="value">'+srs.map(s => s.name).join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">相关学者 ('+srs.length+')</div><div class="adjacent-list">'+
+        srs.map(s => adjPill(s.id, 'scholar', s.name)).join('')+'</div></div>';
     }
     const ths = (data.theories || []).map(tId => theoryMap[tId]).filter(Boolean);
     if (ths.length > 0) {
-      html += '<div class="card-section"><div class="label">相关理论</div><div class="value">'+ths.map(t => t.name).join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">相关理论 ('+ths.length+')</div><div class="adjacent-list">'+
+        ths.map(t => adjPill(t.id, 'theory', t.name)).join('')+'</div></div>';
     }
-  } else if (d.type === 'scholar') {
-    html += '<div class="card-sub">'+data.en+' &middot; '+data.nationality+' &middot; '+data.birth+'</div>';
-    html += '<div class="card-section"><div class="label">所属学派</div><div class="value">'+(schoolMap[data.school]?.name || '')+'</div></div>';
-    // Find related topics
+  }
+
+  // === SCHOLAR ===
+  else if (d.type === 'scholar') {
+    html += '<div class="card-sub">'+data.en+' &middot; '+data.nationality+' &middot; 生卒：'+data.birth+'</div>';
+    html += '<div class="card-detail">';
+    html += '<div class="detail-row"><span class="detail-key">所属学派</span><span class="detail-val">'+(schoolMap[data.school]?.name || '未知')+'</span></div>';
+    html += '</div>';
+
+    // Topics
     const tpRel = DATA.topics.filter(tp => (tp.scholars || []).includes(d.id));
     if (tpRel.length > 0) {
-      html += '<div class="card-section"><div class="label">所属专题</div><div class="value">'+tpRel.map(tp => tp.name).join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">所属专题 ('+tpRel.length+')</div><div class="adjacent-list">'+
+        tpRel.map(tp => adjPill(tp.id, 'topic', tp.name)).join('')+'</div></div>';
     }
+
+    // Theories with descriptions
     const ths = DATA.theories.filter(t => t.scholar === d.id);
     if (ths.length > 0) {
-      html += '<div class="card-section"><div class="label">理论贡献</div><div class="value">'+ths.map(t => t.name+'('+t.year+')').join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">理论贡献 ('+ths.length+')</div>';
+      ths.forEach(t => {
+        html += '<div class="card-detail" style="margin-bottom:6px;padding:8px;background:var(--bg);border-radius:6px;">';
+        html += '<div style="font-weight:600;color:var(--theory);font-size:0.8rem;">'+t.name+' ('+t.year+')</div>';
+        html += '<div style="color:var(--muted);font-size:0.75rem;margin-top:2px;">'+t.desc+'</div>';
+        html += '</div>';
+      });
+      html += '</div>';
     }
+
+    // Researches
     const rss = DATA.researches.filter(r => r.scholar === d.id);
     if (rss.length > 0) {
-      html += '<div class="card-section"><div class="label">核心研究</div><div class="value">'+rss.map(r => r.name).join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">核心研究 ('+rss.length+')</div>';
+      rss.forEach(r => {
+        html += '<div class="card-detail" style="margin-bottom:4px;">• <strong>'+r.name+'</strong> ('+r.year+')：'+r.desc+'</div>';
+      });
+      html += '</div>';
     }
+
+    // Books
     const bks = DATA.books.filter(b => b.scholar === d.id);
     if (bks.length > 0) {
-      html += '<div class="card-section"><div class="label">代表著作</div><div class="value">'+bks.map(b => b.name+'('+b.year+')').join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">代表著作 ('+bks.length+')</div>';
+      bks.forEach(b => {
+        html += '<div class="card-detail" style="margin-bottom:4px;">• <strong>'+b.name+'</strong> ('+b.year+')：'+b.desc+'</div>';
+      });
+      html += '</div>';
     }
-  } else if (d.type === 'theory') {
-    html += '<div class="card-sub">提出时间：'+data.year+' &middot; '+(scholarMap[data.scholar]?.name || '')+'</div>';
-    // Find related topics
+
+    // Neighbors from graph links
+    if (neighbors.length > 0) {
+      html += '<div class="card-section"><div class="label">图谱关联 ('+neighbors.length+')</div><div class="adjacent-list">'+
+        neighbors.map(n => adjPill(n.id, n.type, n.label)).join('')+'</div></div>';
+    }
+  }
+
+  // === THEORY ===
+  else if (d.type === 'theory') {
+    html += '<div class="card-sub">提出时间：'+data.year+'</div>';
+    const author = scholarMap[data.scholar];
+    html += '<div class="card-detail">';
+    html += '<div class="detail-row"><span class="detail-key">提出者</span><span class="detail-val">'+(author?.name || '未知')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">所属学派</span><span class="detail-val">'+(schoolMap[author?.school]?.name || '未知')+'</span></div>';
+    html += '</div>';
+
+    html += '<div class="card-section"><div class="label">理论内容</div><div class="value">'+data.desc+'</div></div>';
+
+    // Topics
     const tpRel = DATA.topics.filter(tp => (tp.theories || []).includes(d.id));
     if (tpRel.length > 0) {
-      html += '<div class="card-section"><div class="label">所属专题</div><div class="value">'+tpRel.map(tp => tp.name).join('、')+'</div></div>';
+      html += '<div class="card-section"><div class="label">所属专题</div><div class="adjacent-list">'+
+        tpRel.map(tp => adjPill(tp.id, 'topic', tp.name)).join('')+'</div></div>';
     }
-    html += '<div class="card-section"><div class="label">理论内容</div><div class="value">'+data.desc+'</div></div>';
-    const sIdx = ['s1','s2','s3','s4'].indexOf(scholarMap[data.scholar]?.school);
-    html += '<div class="card-tags"><span class="tag-school'+(sIdx+1)+'">'+(schoolMap[scholarMap[data.scholar]?.school]?.name || '')+'</span></div>';
-  } else if (d.type === 'research') {
-    html += '<div class="card-sub">'+data.year+' &middot; '+(scholarMap[data.scholar]?.name || '')+'</div>';
+
+    // Same scholar's other theories
+    if (author) {
+      const otherThs = DATA.theories.filter(t => t.scholar === data.scholar && t.id !== d.id);
+      if (otherThs.length > 0) {
+        html += '<div class="card-section"><div class="label">同学者其他理论 ('+otherThs.length+')</div><div class="adjacent-list">'+
+          otherThs.map(t => adjPill(t.id, 'theory', t.name)).join('')+'</div></div>';
+      }
+    }
+
+    // Neighbors
+    if (neighbors.length > 0) {
+      html += '<div class="card-section"><div class="label">图谱关联 ('+neighbors.length+')</div><div class="adjacent-list">'+
+        neighbors.map(n => adjPill(n.id, n.type, n.label)).join('')+'</div></div>';
+    }
+  }
+
+  // === RESEARCH ===
+  else if (d.type === 'research') {
+    html += '<div class="card-sub">'+data.year+'</div>';
+    const author = scholarMap[data.scholar];
+    html += '<div class="card-detail">';
+    html += '<div class="detail-row"><span class="detail-key">研究者</span><span class="detail-val">'+(author?.name || '未知')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">所属学派</span><span class="detail-val">'+(schoolMap[author?.school]?.name || '未知')+'</span></div>';
+    html += '</div>';
+
     html += '<div class="card-section"><div class="label">研究内容</div><div class="value">'+data.desc+'</div></div>';
-  } else if (d.type === 'book') {
-    html += '<div class="card-sub">'+data.year+' &middot; '+(scholarMap[data.scholar]?.name || '')+'</div>';
+
+    // Same scholar's other researches
+    if (author) {
+      const otherRs = DATA.researches.filter(r => r.scholar === data.scholar && r.id !== d.id);
+      if (otherRs.length > 0) {
+        html += '<div class="card-section"><div class="label">同学者其他研究 ('+otherRs.length+')</div><div class="adjacent-list">'+
+          otherRs.map(r => adjPill(r.id, 'research', r.name)).join('')+'</div></div>';
+      }
+    }
+
+    if (neighbors.length > 0) {
+      html += '<div class="card-section"><div class="label">图谱关联 ('+neighbors.length+')</div><div class="adjacent-list">'+
+        neighbors.map(n => adjPill(n.id, n.type, n.label)).join('')+'</div></div>';
+    }
+  }
+
+  // === BOOK ===
+  else if (d.type === 'book') {
+    html += '<div class="card-sub">'+data.year+'</div>';
+    const author = scholarMap[data.scholar];
+    html += '<div class="card-detail">';
+    html += '<div class="detail-row"><span class="detail-key">作者</span><span class="detail-val">'+(author?.name || '未知')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">所属学派</span><span class="detail-val">'+(schoolMap[author?.school]?.name || '未知')+'</span></div>';
+    html += '</div>';
+
     html += '<div class="card-section"><div class="label">内容简介</div><div class="value">'+data.desc+'</div></div>';
-  } else if (d.type === 'school') {
+
+    // Same scholar's other books
+    if (author) {
+      const otherBs = DATA.books.filter(b => b.scholar === data.scholar && b.id !== d.id);
+      if (otherBs.length > 0) {
+        html += '<div class="card-section"><div class="label">同作者其他著作 ('+otherBs.length+')</div><div class="adjacent-list">'+
+          otherBs.map(b => adjPill(b.id, 'book', b.name)).join('')+'</div></div>';
+      }
+    }
+
+    if (neighbors.length > 0) {
+      html += '<div class="card-section"><div class="label">图谱关联 ('+neighbors.length+')</div><div class="adjacent-list">'+
+        neighbors.map(n => adjPill(n.id, n.type, n.label)).join('')+'</div></div>';
+    }
+  }
+
+  // === SCHOOL ===
+  else if (d.type === 'school') {
     html += '<div class="card-sub">'+data.en+'</div>';
     html += '<div class="card-section"><div class="label">学派特点</div><div class="value">'+data.desc+'</div></div>';
+
     const srs = DATA.scholars.filter(s => s.school === d.id);
-    html += '<div class="card-section"><div class="label">代表人物</div><div class="value">'+srs.map(s => s.name).join('、')+'</div></div>';
+    if (srs.length > 0) {
+      html += '<div class="card-section"><div class="label">代表人物 ('+srs.length+')</div><div class="adjacent-list">'+
+        srs.map(s => adjPill(s.id, 'scholar', s.name)).join('')+'</div></div>';
+    }
+
+    // Aggregate theories, researches, books from scholars in this school
+    const sIds = new Set(srs.map(s => s.id));
+    const schThs = DATA.theories.filter(t => sIds.has(t.scholar));
+    if (schThs.length > 0) {
+      html += '<div class="card-section"><div class="label">该学派理论 ('+schThs.length+')</div><div class="adjacent-list">'+
+        schThs.slice(0, 15).map(t => adjPill(t.id, 'theory', t.name)).join('')+(schThs.length>15?' <span style="color:var(--muted);font-size:0.7rem;">+'+(schThs.length-15)+'...</span>':'')+'</div></div>';
+    }
+
+    if (neighbors.length > 0) {
+      html += '<div class="card-section"><div class="label">图谱关联 ('+neighbors.length+')</div><div class="adjacent-list">'+
+        neighbors.map(n => adjPill(n.id, n.type, n.label)).join('')+'</div></div>';
+    }
   }
 
   html += '</div>';
