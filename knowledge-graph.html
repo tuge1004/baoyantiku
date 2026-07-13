@@ -898,8 +898,7 @@ function toggleTypeFilter(type) {
 }
 
 function applyFilters() {
-  // Determine which nodes should be visible
-  // Update globalVisible and restart simulation
+  // Update globalVisible
   globalVisible.clear();
   nodes.forEach(n => {
     if (!activeTypeFilters.has(n.type)) return;
@@ -929,8 +928,14 @@ function applyFilters() {
     globalVisible.add(n.id);
   });
 
-  // Restart simulation with hidden nodes fixed to reduce jitter
-  simulation.nodes(nodes.map(n => ({ ...n, fx: globalVisible.has(n.id) ? null : n.x, fy: globalVisible.has(n.id) ? null : n.y })));
+  // Fix hidden nodes in place, unfix visible nodes - modify original objects, NOT copy
+  nodes.forEach(n => {
+    if (globalVisible.has(n.id)) {
+      n.fx = null; n.fy = null;
+    } else {
+      if (n.fx == null) { n.fx = n.x; n.fy = n.y; }
+    }
+  });
   simulation.alpha(0.3).restart();
 }
 
