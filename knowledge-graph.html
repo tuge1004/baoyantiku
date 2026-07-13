@@ -794,7 +794,7 @@ node.on('mouseenter', (event, d) => {
 
 svg.on('click', () => { clearHighlight(); });
 
-// Highlight: connected nodes keep original appearance, others disappear
+// Highlight: connected nodes keep original, others vanish completely
 function highlightNode(d) {
   const connected = new Set([d.id]);
   validLinks.forEach(l => {
@@ -803,26 +803,25 @@ function highlightNode(d) {
     if (src === d.id) connected.add(tgt);
     if (tgt === d.id) connected.add(src);
   });
-  node.transition().duration(250)
-    .style('opacity', n => connected.has(n.id) ? 1 : 0);
-  link.transition().duration(250)
-    .style('opacity', l => {
-      const src = typeof l.source === 'object' ? l.source.id : l.source;
-      const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-      return (connected.has(src) && connected.has(tgt)) ? 0.6 : 0;
-    });
-  linkLabels.transition().duration(250)
-    .style('opacity', l => {
-      const src = typeof l.source === 'object' ? l.source.id : l.source;
-      const tgt = typeof l.target === 'object' ? l.target.id : l.target;
-      return (connected.has(src) && connected.has(tgt)) ? 0.7 : 0;
-    });
+  node.each(function(n) {
+    this.style.display = connected.has(n.id) ? '' : 'none';
+  });
+  link.each(function(l) {
+    const src = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+    this.style.display = (connected.has(src) && connected.has(tgt)) ? '' : 'none';
+  });
+  linkLabels.each(function(l) {
+    const src = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgt = typeof l.target === 'object' ? l.target.id : l.target;
+    this.style.display = (connected.has(src) && connected.has(tgt)) ? '' : 'none';
+  });
 }
 
 function clearHighlight() {
-  node.transition().duration(300).style('opacity', 1);
-  link.transition().duration(300).style('opacity', 1);
-  linkLabels.transition().duration(300).style('opacity', 0.6);
+  node.each(function() { this.style.display = ''; });
+  link.each(function() { this.style.display = ''; });
+  linkLabels.each(function() { this.style.display = ''; });
 }
 
 // ===== COLOR MODE SWITCHING =====
@@ -924,23 +923,20 @@ function applyFilters() {
     visibleNodes.add(n.id);
   });
 
-  // Apply visibility: visible = keep original, invisible = disappear
-  node.transition().duration(400)
-    .style('opacity', n => visibleNodes.has(n.id) ? 1 : 0);
-
-  link.transition().duration(400)
-    .style('opacity', l => {
-      const srcId = typeof l.source === 'object' ? l.source.id : l.source;
-      const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
-      return (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? 1 : 0;
-    });
-
-  linkLabels.transition().duration(400)
-    .style('opacity', l => {
-      const srcId = typeof l.source === 'object' ? l.source.id : l.source;
-      const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
-      return (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? 0.6 : 0;
-    });
+  // Apply visibility: visible = keep original, invisible = vanish
+  node.each(function(n) {
+    this.style.display = visibleNodes.has(n.id) ? '' : 'none';
+  });
+  link.each(function(l) {
+    const srcId = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
+    this.style.display = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
+  });
+  linkLabels.each(function(l) {
+    const srcId = typeof l.source === 'object' ? l.source.id : l.source;
+    const tgtId = typeof l.target === 'object' ? l.target.id : l.target;
+    this.style.display = (visibleNodes.has(srcId) && visibleNodes.has(tgtId)) ? '' : 'none';
+  });
 
   // Restart simulation with hidden nodes fixed to reduce jitter
   simulation.nodes(nodes.map(n => ({ ...n, fx: visibleNodes.has(n.id) ? null : n.x, fy: visibleNodes.has(n.id) ? null : n.y })));
