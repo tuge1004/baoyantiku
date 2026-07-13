@@ -115,10 +115,10 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 .graph-node.dimmed text.node-label { opacity: 0.2; }
 
 /* Link */
-.graph-link { stroke: var(--rule); stroke-opacity: 0.4; transition: all 0.2s; }
+.graph-link { stroke: var(--rule); stroke-opacity: 0.6; transition: all 0.2s; }
 .graph-link.highlight { stroke: var(--accent); stroke-opacity: 0.9; stroke-width: 2px; }
 .graph-link.dimmed { stroke-opacity: 0.05; }
-.link-label { font-size: 9px; fill: var(--muted); font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; opacity: 0.6; transition: all 0.2s; }
+.link-label { font-size: 10px; fill: #AAAACC; font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif; pointer-events: none; opacity: 0.85; transition: all 0.2s; }
 .link-label.highlight { fill: var(--accent); opacity: 1; font-weight: 700; font-size: 10px; }
 .link-label.dimmed { opacity: 0.05; }
 
@@ -940,7 +940,7 @@ simulation.on('tick', () => {
   }).attr('opacity', d => {
     const src = typeof d.source === 'object' ? d.source.id : d.source;
     const tgt = typeof d.target === 'object' ? d.target.id : d.target;
-    return (globalVisible.has(src) && globalVisible.has(tgt)) ? 0.7 : 0;
+    return (globalVisible.has(src) && globalVisible.has(tgt)) ? 0.9 : 0;
   });
   node.attr('transform', d => {
     if (d.x == null || d.y == null) return 'translate(0,0)';
