@@ -150,31 +150,23 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 768px) {
-  /* Portrait orientation warning */
-  #portrait-warning {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--bg);
-    z-index: 9999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    text-align: center;
-    padding: 20px;
-  }
-  #portrait-warning .rotate-icon {
-    font-size: 48px;
-    animation: rotatePhone 2s ease-in-out infinite;
-  }
-  @keyframes rotatePhone {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(90deg); }
-  }
-  @media (orientation: portrait) {
-    #portrait-warning { display: flex; }
-    #app { display: none; }
+  /* Force landscape on portrait screens */
+  @media (orientation: portrait) and (max-width: 768px) {
+    #app {
+      transform: rotate(90deg);
+      transform-origin: top left;
+      width: 100vh;
+      height: 100vw;
+      position: fixed;
+      top: 0; left: 0;
+      overflow: hidden;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #bottom-tabs { transform: rotate(-90deg); transform-origin: bottom right; }
   }
 
   /* Mobile landscape layout */
@@ -256,18 +248,10 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 @media (min-width: 769px) {
   #bottom-tabs { display: none; }
   #side-panel-overlay { display: none; }
-  #portrait-warning { display: none; }
 }
 </style>
 </head>
 <body>
-<!-- Portrait orientation warning -->
-<div id="portrait-warning">
-  <div class="rotate-icon">📱</div>
-  <h2>请旋转手机</h2>
-  <p style="color:var(--muted);font-size:0.9rem;">知识图谱为横屏优化<br>请将手机转为横屏浏览</p>
-</div>
-
 <div id="app">
   <div id="topbar">
     <h1>新传知识图谱</h1>
