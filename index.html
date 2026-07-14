@@ -344,7 +344,7 @@ const DATA = {
     { id:"tp1", name:"政治传播", en:"Political Communication", color:"#FF6B6B", desc:"研究政治传播过程、政治宣传、舆论形成与政治沟通的交叉领域。", scholars:["p2","p13","p26","p27","p4","p37","p39"], theories:["t3","t4","t7","t8","t9","t18","t19","t65","t66","t67","t68","t94"] },
     { id:"tp2", name:"智能传播/AIGC", en:"Intelligent Communication", color:"#FF8C42", desc:"研究人工智能、算法推荐、平台化及人机交互对传播生态的根本性变革。", scholars:["p28","p29","p30","p31","p40","m5","c12"], theories:["t45","t33","t52","t69","t70","t71","t72","t73","t74","t83","t84"] },
     { id:"tp3", name:"传媒经济学", en:"Media Economics", color:"#FFD93D", desc:"研究媒介产业的运作规律、市场结构和经济行为，包括注意力经济和平台经济。", scholars:["p35","p36","c6","c13"], theories:["t27","t34","t80","t81","t82","t83","t84"] },
-    { id:"tp4", name:"国际传播", en:"International Communication", color:"#6BCB77", desc:"研究跨国界、跨文化的信息流动与传播，涉及国家形象、软实力和文化帝国主义的交叉领域。", scholars:["p32","p33","p34","c13","c5"], theories:["t26","t34","t75","t76","t77","t78","t79"] },
+    { id:"tp4", name:"国际传播", en:"International Communication", color:"#6BCB77", desc:"研究跨国界、跨文化的信息流动与传播，涉及国家形象、软实力和文化帝国主义的交叉领域。", scholars:["p32","p33","p34","c13","c5"], theories:["t26","t34","t75","t76","t77","t78"] },
     { id:"tp5", name:"报刊理论", en:"Press Theories", color:"#4D96FF", desc:"研究新闻出版体制、报刊功能和社会责任，包括报刊的四种理论等经典范式。", scholars:["p18","p19","p20","p21","p22","p23","p24","p25","p5","p17"], theories:["t5","t54","t55","t56","t57","t58","t59","t60","t61","t62","t63","t64"] },
     { id:"tp6", name:"健康传播", en:"Health Communication", color:"#9B59B6", desc:"研究健康信息传播、健康行为改变和风险沟通策略，是传播学与公共卫生的交叉领域。", scholars:["p3","p4","p10"], theories:["t6","t7","t85","t86","t87","t88"] },
     { id:"tp7", name:"跨文化传播", en:"Intercultural Communication", color:"#E67E22", desc:"研究不同文化背景的人们之间的信息传播与交流，关注文化差异对传播效果的影响。", scholars:["p34","p33","c5","p54"], theories:["t26","t78","t89","t90","t91"] },
@@ -552,9 +552,8 @@ const DATA = {
     // === NEW: International Communication (t75-t79) ===
     { id:"t75", name:"软实力", year:2004, scholar:"p32", desc:"通过文化吸引力、意识形态和国际制度而非强制手段影响他国意愿的能力，是国际传播的核心概念。" },
     { id:"t76", name:"文化折扣", year:1988, scholar:"p33", desc:"文化产品在跨国传播中因文化差异而导致的价值减损，影响国际传播效果。" },
-    { id:"t77", name:"文化接近性", year:1991, scholar:"p34", desc:"受众倾向于选择与自己文化背景相近的媒介产品，影响国际文化贸易流向。" },
+    { id:"t77", name:"文化自觉", year:1990, scholar:"p34", desc:"费孝通提出，指生活在一定文化中的人对其文化有'自知之明'，核心思想为'各美其美，美人之美，美美与共，天下大同'。" },
     { id:"t78", name:"东方学", year:1978, scholar:"p33", desc:"西方对东方的系统化知识建构是权力话语的体现，东方被'他者化'和刻板化。" },
-    { id:"t79", name:"人类命运共同体", year:2015, scholar:"p34", desc:"中国提出的全球治理理念，强调各国在全球化时代共同利益和共同责任，引领国际传播新秩序。" },
 
     // === NEW: Media Economics (t80-t84) ===
     { id:"t80", name:"注意力经济", year:1971, scholar:"p48", desc:"在信息爆炸时代，注意力成为稀缺资源，媒介竞争的核心是争夺用户有限的注意力。" },
@@ -571,7 +570,7 @@ const DATA = {
 
     // === NEW: Intercultural Communication (t89-t91) ===
     { id:"t89", name:"高语境/低语境", year:1976, scholar:"p54", desc:"高语境文化中信息高度依赖语境和默契，低语境文化中信息高度外显化、编码化。" },
-    { id:"t90", name:"跨文化适应", year:1950, scholar:"p34", desc:"个体进入新文化环境后心理和行为调整的过程和策略，包括U型曲线和跨文化沟通能力。" },
+    { id:"t90", name:"跨文化敏感度", year:1989, scholar:"p54", desc:"个人理解、欣赏和接受文化差异的能力，是跨文化适应和跨文化传播效果的关键影响因素。" },
     { id:"t91", name:"文化认同", year:1970, scholar:"p33", desc:"个体对特定文化群体的归属感和认同感，在全球化背景下呈现复杂多元和动态特征。" },
 
     // === NEW: Public Opinion (t92-t94) ===
@@ -672,7 +671,8 @@ const DATA = {
     { id:"b48", name:"《长尾理论》", year:2006, scholar:"p49", desc:"克里斯·安德森提出数字时代小众市场集合可与主流市场匹敌的颠覆性商业模式。" },
     { id:"b49", name:"《软实力》", year:2004, scholar:"p32", desc:"约瑟夫·奈提出文化吸引力和价值观感召力是国家实力的重要组成部分。" },
     { id:"b50", name:"《东方学》", year:1978, scholar:"p33", desc:"萨义德批判西方对东方的知识建构是权力话语的体现，后殖民理论的奠基之作。" },
-    { id:"b51", name:"《文化间性》", year:1990, scholar:"p34", desc:"费孝通探讨不同文化之间的交流对话与互鉴，提出'各美其美，美美与共'的理念。" },
+    { id:"b51", name:"《乡土中国》", year:1948, scholar:"p34", desc:"费孝通社会学代表作，系统阐述中国乡村社会结构与人际关系，提出'差序格局'等核心概念。" },
+    { id:"b54", name:"《江村经济》", year:1939, scholar:"p34", desc:"费孝通博士论文，中国社区研究的经典之作，对太湖畔开弦弓村的经济与社会进行实地调查。" },
     { id:"b52", name:"《乌合之众》", year:1895, scholar:"p43", desc:"古斯塔夫·勒庞分析群体心理的特征：冲动、易变、缺乏理性，是群体心理学的开创之作。" },
     { id:"b53", name:"《舆论的结晶》", year:1923, scholar:"p39", desc:"爱德华·伯内斯提出公关的双向沟通理念，是公共关系理论的开山之作。" },
     { id:"b54", name:"《一个广告人的自白》", year:1963, scholar:"p38", desc:"大卫·奥格威分享广告创意和品牌建设的实战经验，广告界的经典读物。" },
