@@ -149,6 +149,193 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ===== Topic Section ===== */
+#topic-section {
+  display: none;
+  flex: 1;
+  margin-top: 52px;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+#topic-section.active {
+  display: flex;
+}
+.topic-list {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg2);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.topic-card {
+  flex-shrink: 0;
+  width: 260px;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.topic-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.topic-card.active {
+  border-color: var(--accent);
+  background: rgba(124,111,240,0.1);
+}
+.topic-card .tc-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.topic-card .tc-meta {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.topic-card .tc-summary {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.topic-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.topic-article {
+  flex: 0 0 60%;
+  overflow-y: auto;
+  padding: 24px 32px;
+  border-right: 1px solid var(--rule);
+}
+.topic-article h1 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.topic-article .article-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.topic-article .article-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.topic-article .article-keywords span {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  background: rgba(124,111,240,0.12);
+  color: var(--accent);
+  border: 1px solid rgba(124,111,240,0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.topic-article .article-keywords span:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.article-content {
+  line-height: 1.9;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.article-content h2 {
+  font-size: 1.05rem;
+  margin: 24px 0 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.article-content h2:first-child {
+  margin-top: 0;
+}
+.article-content p {
+  margin-bottom: 12px;
+  text-indent: 2em;
+}
+.kw-link {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  transition: all 0.15s;
+}
+.kw-link:hover {
+  color: var(--accent2);
+  text-decoration-style: solid;
+}
+.topic-mindmap {
+  flex: 0 0 40%;
+  position: relative;
+  background: var(--bg2);
+}
+#mindmap-svg {
+  width: 100%;
+  height: 100%;
+}
+.mindmap-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 0.68rem;
+  pointer-events: none;
+  background: rgba(15,15,26,0.8);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.mm-node circle {
+  stroke-width: 2px;
+  transition: all 0.2s;
+}
+.mm-node text {
+  font-size: 11px;
+  font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif;
+  pointer-events: none;
+  fill: var(--ink);
+}
+.mm-link {
+  fill: none;
+}
+.mm-node {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.mm-node:hover circle {
+  filter: brightness(1.3);
+  transform-origin: center;
+}
+.mm-node:hover {
+  opacity: 1 !important;
+}
+.mm-node.highlighted circle {
+  stroke: #fff !important;
+  stroke-width: 3px;
+}
+.mm-node.highlighted {
+  opacity: 1 !important;
+}
+
 @media (max-width: 768px) {
   /* Mobile layout - works in both portrait and landscape */
   #topbar { height: 40px; padding: 0 10px; gap: 8px; }
@@ -224,6 +411,64 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
   .game-question { font-size: 0.9rem; padding: 12px; }
   .filter-options { gap: 4px; }
   .filter-btn { padding: 4px 8px; font-size: 0.7rem; }
+
+  /* Topic section mobile */
+  #topic-section {
+    margin-top: 40px;
+  }
+  .topic-list {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .topic-card {
+    width: 220px;
+    padding: 10px 12px;
+  }
+  .topic-card .tc-title {
+    font-size: 0.8rem;
+  }
+  .topic-card .tc-meta {
+    font-size: 0.65rem;
+    margin-bottom: 6px;
+  }
+  .topic-card .tc-summary {
+    font-size: 0.7rem;
+  }
+  .topic-body {
+    flex-direction: column;
+  }
+  .topic-article {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 16px 20px;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    overflow-y: auto;
+  }
+  .topic-article h1 {
+    font-size: 1.1rem;
+  }
+  .topic-article .article-meta {
+    font-size: 0.72rem;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+  }
+  .article-content {
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+  .article-content h2 {
+    font-size: 0.95rem;
+    margin: 18px 0 10px;
+  }
+  .topic-mindmap {
+    flex: 0 0 45%;
+    width: 100%;
+  }
+  .mindmap-hint {
+    font-size: 0.6rem;
+    bottom: 52px;
+  }
 }
 
 @media (min-width: 769px) {
@@ -238,6 +483,7 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
     <h1>新传知识图谱</h1>
     <button class="mode-btn active" onclick="setMode('graph')">图谱浏览</button>
     <button class="mode-btn" onclick="setMode('game')">填空游戏</button>
+    <button class="mode-btn" onclick="setMode('topic')">专题思考</button>
     <div id="color-modes">
       <button class="cm-btn active" onclick="setColorMode('default')">默认配色</button>
       <button class="cm-btn" onclick="setColorMode('school')">按学派/专题</button>
@@ -247,6 +493,16 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
   </div>
   <div id="graph-canvas">
     <div class="zoom-hint">滚轮缩放 · 拖拽移动 · 点击节点查看详情</div>
+  </div>
+  <div id="topic-section">
+    <div class="topic-list" id="topic-list"></div>
+    <div class="topic-body">
+      <div class="topic-article" id="topic-article"></div>
+      <div class="topic-mindmap">
+        <svg id="mindmap-svg"></svg>
+        <div class="mindmap-hint">拖拽节点 · 滚轮缩放 · 点击跳转图谱</div>
+      </div>
+    </div>
   </div>
   <div id="side-panel">
     <div id="search-wrap">
@@ -326,6 +582,9 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
     </button>
     <button class="tab" id="tab-game" onclick="setMobileTab('game')">
       <span>🎮</span> 填空
+    </button>
+    <button class="tab" id="tab-topic" onclick="setMobileTab('topic')">
+      <span>📚</span> 专题
     </button>
   </div>
 </div>
@@ -1063,6 +1322,16 @@ window.addEventListener('resize', () => {
   svg.attr('width', width()).attr('height', height());
   simulation.force('center', d3.forceCenter(width()/2, height()/2)).restart();
   fitAllNodes();
+  // Resize mindmap if active
+  if (currentMode === 'topic' && mmSvg && mmSimulation) {
+    const container = document.querySelector('.topic-mindmap');
+    if (container) {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      mmSvg.attr('width', w).attr('height', h);
+      mmSimulation.force('center', d3.forceCenter(w/2, h/2)).restart();
+    }
+  }
 });
 
 // Auto-fit all nodes into view after simulation stabilizes
@@ -1349,6 +1618,518 @@ function focusNode(id, type) {
   svg.transition().duration(600).call(zoom.transform, transform);
 }
 
+// ===== TOPIC ARTICLES =====
+const TOPIC_ARTICLES = [
+  {
+    id: "ta1",
+    title: "从文化工业到平台资本主义：批判学派传播理论的逻辑演进",
+    author: "专题研究",
+    date: "2024",
+    summary: `批判学派是传播学研究中与美国经验学派相抗衡的重要学术力量。法兰克福学派、传播政治经济学派与文化研究学派同属传播学批判阵营，三者的渊源可追溯至共同的思想源头——马克思主义。本文以"批判对象→运行机制→主体影响→解放路径"为分析框架，系统考察批判学派传播理论从文化工业到平台资本主义的逻辑演进。研究发现，批判学派的批判靶心经历了从"文化生产体系"到"传播商品化"再到"意义编码"的三重递进，其演进线索始终围绕着资本主义如何通过文化与传播实现对人的统治这一核心问题展开。`,
+    keywords: ["批判学派", "法兰克福学派", "传播政治经济学", "文化研究", "平台资本主义"],
+    mindmap: {
+      nodes: [
+        { id: "root", label: "批判学派传播理论的逻辑演进", graphId: null },
+        { id: "b0", label: "总纲：核心问题与逻辑线索", graphId: null },
+        { id: "b0-1", label: "核心问题：资本主义如何通过文化与传播实现对人的统治？", graphId: null },
+        { id: "b0-2", label: "逻辑递进：结构批判→经济批判→能动性批判→本体论批判", graphId: null },
+        { id: "b0-3", label: "分析框架：批判对象→运行机制→主体影响→解放路径", graphId: null },
+        { id: "b1", label: "第一章 法兰克福学派：文化如何被工业化", graphId: null },
+        { id: "b1-1", label: "理论源头", graphId: null },
+        { id: "b1-1a", label: "马克思（1844）：异化劳动", graphId: null },
+        { id: "b1-1b", label: "马克思（1867）：商品拜物教", graphId: null },
+        { id: "b1-1c", label: "卢卡奇（1923）：物化理论", graphId: null },
+        { id: "b1-2", label: "核心概念", graphId: null },
+        { id: "b1-2a", label: "霍克海默&阿多诺（1944）：文化工业", graphId: "t22" },
+        { id: "b1-2b", label: "阿多诺（1967）：标准化/伪个性", graphId: "c2" },
+        { id: "b1-3", label: "马尔库塞（1964）：单向度的人", graphId: "t23" },
+        { id: "b1-4", label: "运行机制：标准化、模式化、商业化、强制性", graphId: null },
+        { id: "b1-5", label: "解放路径", graphId: null },
+        { id: "b1-5a", label: "哈贝马斯（1962）：公共领域", graphId: "t24" },
+        { id: "b1-5b", label: "哈贝马斯（1981）：交往行动理论", graphId: "t25" },
+        { id: "b1-6", label: "小结：开启文化批判先河", graphId: null },
+        { id: "b2", label: "第二章 传播政治经济学：传播如何被商品化", graphId: null },
+        { id: "b2-1", label: "马克思（1867）：劳动价值论/剩余价值", graphId: null },
+        { id: "b2-2", label: "核心概念", graphId: null },
+        { id: "b2-2a", label: "斯麦兹（1977）：受众商品论", graphId: "t27" },
+        { id: "b2-2b", label: "福克斯（2014）：数字劳动", graphId: "b45" },
+        { id: "b2-2c", label: "斯尔尼塞克（2017）：平台资本主义", graphId: "t72" },
+        { id: "b2-2d", label: "库尔德利（2012）：媒介权力/数据化", graphId: null },
+        { id: "b2-3", label: "运行机制：数据提取、注意力商品化、平台垄断", graphId: null },
+        { id: "b2-4", label: "主体影响：数字劳工——自由与保障的双重困境", graphId: null },
+        { id: "b2-5", label: "解放路径", graphId: null },
+        { id: "b2-5a", label: "福克斯：数字无产阶级的占领运动", graphId: "p51" },
+        { id: "b2-5b", label: "斯尔尼塞克：缩短工时/全民基本收入", graphId: "p31" },
+        { id: "b3", label: "第三章 文化研究：权力如何通过意义实现统治", graphId: null },
+        { id: "b3-1", label: "理论源头", graphId: null },
+        { id: "b3-1a", label: "葛兰西（1929-1935）：文化霸权", graphId: "t28" },
+        { id: "b3-1b", label: "阿尔都塞（1970）：意识形态国家机器/询唤", graphId: "t29" },
+        { id: "b3-1c", label: "霍加特（1957）：文化的日常性", graphId: null },
+        { id: "b3-1d", label: "威廉斯（1958/1961）：文化作为整体生活方式", graphId: null },
+        { id: "b3-2", label: "核心概念", graphId: null },
+        { id: "b3-2a", label: "霍尔（1980）：编码/解码", graphId: "t26" },
+        { id: "b3-2b", label: "德塞都（1984）：日常生活实践/战术抵抗", graphId: "t32" },
+        { id: "b3-2c", label: "詹金斯（1992）：文本盗猎", graphId: "t33" },
+        { id: "b3-3", label: "运行机制：编码端（霸权/询唤）+ 解码端（三种立场/战术抵抗）", graphId: null },
+        { id: "b3-4", label: "主体影响：既是囚徒也是游击队员", graphId: null },
+        { id: "b3-5", label: "解放路径：对抗式解码→文本盗猎→参与式文化", graphId: null },
+        { id: "b4", label: "第四章 后现代批判：从文化商品到拟像社会", graphId: null },
+        { id: "b4-1", label: "鲍德里亚（1976/1981）：拟像/超真实/内爆", graphId: "t30" },
+        { id: "b4-2", label: "布迪厄（1979/1996）：场域/资本/惯习", graphId: "t31" },
+        { id: "b4-3", label: "萨义德（1978/1993）：东方主义/文化帝国主义", graphId: "t34" },
+        { id: "b5", label: "第五章 比较与总结", graphId: null },
+        { id: "b5-1", label: "三大学派比较", graphId: null },
+        { id: "b5-1a", label: "法兰克福：批判文化生产标准化", graphId: "s2" },
+        { id: "b5-1b", label: "政经学派：批判传播商品化与数字剥削", graphId: null },
+        { id: "b5-1c", label: "文化研究：批判意义编码中的权力", graphId: null },
+        { id: "b5-2", label: "理论递进（四层）", graphId: null },
+        { id: "b5-2a", label: "第一层：文化怎么被生产成商品？", graphId: null },
+        { id: "b5-2b", label: "第二层：生产中的人怎么被剥削？", graphId: null },
+        { id: "b5-2c", label: "第三层：被剥削的人怎么反抗？", graphId: null },
+        { id: "b5-2d", label: "第四层：真实消解后批判还有何可能？", graphId: null },
+        { id: "b5-3", label: "算法时代的当代发展", graphId: null },
+        { id: "b5-3a", label: "商品拜物教→数字拜物教", graphId: null },
+        { id: "b5-3b", label: "文化工业→数字文化工业", graphId: null },
+        { id: "b5-3c", label: "监控资本主义→数字帝国主义", graphId: null },
+        { id: "b5-3d", label: "批判范式转换：结构批判→过程批判", graphId: null },
+        { id: "b5-4", label: "结论：批判精神一脉相承", graphId: null }
+      ],
+      links: [
+        { source: "root", target: "b0" },
+        { source: "root", target: "b1" },
+        { source: "root", target: "b2" },
+        { source: "root", target: "b3" },
+        { source: "root", target: "b4" },
+        { source: "root", target: "b5" },
+        { source: "b0", target: "b0-1" },
+        { source: "b0", target: "b0-2" },
+        { source: "b0", target: "b0-3" },
+        { source: "b1", target: "b1-1" },
+        { source: "b1-1", target: "b1-1a" },
+        { source: "b1-1", target: "b1-1b" },
+        { source: "b1-1", target: "b1-1c" },
+        { source: "b1", target: "b1-2" },
+        { source: "b1-2", target: "b1-2a" },
+        { source: "b1-2", target: "b1-2b" },
+        { source: "b1", target: "b1-3" },
+        { source: "b1", target: "b1-4" },
+        { source: "b1", target: "b1-5" },
+        { source: "b1-5", target: "b1-5a" },
+        { source: "b1-5", target: "b1-5b" },
+        { source: "b1", target: "b1-6" },
+        { source: "b2", target: "b2-1" },
+        { source: "b2", target: "b2-2" },
+        { source: "b2-2", target: "b2-2a" },
+        { source: "b2-2", target: "b2-2b" },
+        { source: "b2-2", target: "b2-2c" },
+        { source: "b2-2", target: "b2-2d" },
+        { source: "b2", target: "b2-3" },
+        { source: "b2", target: "b2-4" },
+        { source: "b2", target: "b2-5" },
+        { source: "b2-5", target: "b2-5a" },
+        { source: "b2-5", target: "b2-5b" },
+        { source: "b3", target: "b3-1" },
+        { source: "b3-1", target: "b3-1a" },
+        { source: "b3-1", target: "b3-1b" },
+        { source: "b3-1", target: "b3-1c" },
+        { source: "b3-1", target: "b3-1d" },
+        { source: "b3", target: "b3-2" },
+        { source: "b3-2", target: "b3-2a" },
+        { source: "b3-2", target: "b3-2b" },
+        { source: "b3-2", target: "b3-2c" },
+        { source: "b3", target: "b3-3" },
+        { source: "b3", target: "b3-4" },
+        { source: "b3", target: "b3-5" },
+        { source: "b4", target: "b4-1" },
+        { source: "b4", target: "b4-2" },
+        { source: "b4", target: "b4-3" },
+        { source: "b5", target: "b5-1" },
+        { source: "b5-1", target: "b5-1a" },
+        { source: "b5-1", target: "b5-1b" },
+        { source: "b5-1", target: "b5-1c" },
+        { source: "b5", target: "b5-2" },
+        { source: "b5-2", target: "b5-2a" },
+        { source: "b5-2", target: "b5-2b" },
+        { source: "b5-2", target: "b5-2c" },
+        { source: "b5-2", target: "b5-2d" },
+        { source: "b5", target: "b5-3" },
+        { source: "b5-3", target: "b5-3a" },
+        { source: "b5-3", target: "b5-3b" },
+        { source: "b5-3", target: "b5-3c" },
+        { source: "b5-3", target: "b5-3d" },
+        { source: "b5", target: "b5-4" }
+      ]
+    },
+    content: `
+<h2>摘要</h2>
+<p>批判学派是传播学研究中与美国经验学派相抗衡的重要学术力量。法兰克福学派、传播政治经济学派与文化研究学派同属传播学批判阵营，三者的渊源可追溯至共同的思想源头——马克思主义。本文以"批判对象→运行机制→主体影响→解放路径"为分析框架，系统考察批判学派传播理论从文化工业到平台资本主义的逻辑演进。研究发现，批判学派的批判靶心经历了从"文化生产体系"到"传播商品化"再到"意义编码"的三重递进，其演进线索始终围绕着资本主义如何通过文化与传播实现对人的统治这一核心问题展开。</p>
+<p>关键词：批判学派；法兰克福学派；传播政治经济学；文化研究；平台资本主义</p>
+
+<h2>引言</h2>
+<p>批判学派并非一个铁板一块的理论阵营。法兰克福学派、传播政治经济学派与文化研究学派虽然共享着马克思主义的思想底色，却在批判对象、理论关切和解放路径上呈现出深刻的差异。这种差异不是简单的学派分立，而是批判理论在回应不同历史阶段资本主义新形态时所产生的逻辑演进。理解这一演进线索，不仅有助于把握批判学派的理论全貌，更有助于在算法时代激活批判理论的当代价值。</p>
+<p>本文不采取人物列传式的写法，而是以"批判对象→运行机制→主体影响→解放路径"为分析框架，每一章聚焦一个核心理论范式，揭示其内在的逻辑结构及其在批判谱系中的位置。</p>
+
+<h2>第一章 法兰克福学派：资本主义如何将文化工业化</h2>
+<h3>一、理论源头</h3>
+<p>批判理论的思想源头可追溯至<span class="kw-link" data-id="b1-1a">马克思</span>。<span class="kw-link" data-id="b1-1a">马克思</span>在《1844年经济学哲学手稿》中提出了"<span class="kw-link" data-id="b1-1a">异化劳动</span>"理论，揭示了资本主义生产中劳动者与劳动产品、与自身类本质的分离——人创造了物，物却反过来统治了人。此后，<span class="kw-link" data-id="b1-1b">马克思</span>在《<span class="kw-link" data-id="b1-1b">资本论</span>》（1867）中进一步揭示了<span class="kw-link" data-id="b1-1b">商品拜物教</span>的本质：资本主义生产关系将自身转化为"事物"，而后颠倒地表现为外在之"物"。</p>
+<p><span class="kw-link" data-id="b1-1c">卢卡奇</span>在《历史与阶级意识》（1923）中发展了<span class="kw-link" data-id="b1-1a">马克思</span>的异化理论。在该书中，<span class="kw-link" data-id="b1-1c">卢卡奇</span>提出了"<span class="kw-link" data-id="b1-1c">物化理论</span>"，将韦伯的合理化理论与<span class="kw-link" data-id="b1-1b">马克思</span>的商品拜物教分析结合起来。<span class="kw-link" data-id="b1-1c">卢卡奇</span>指出："人自身的活动（劳动），变成了客观的、不以自己的意志转移的某种东西，变成了依靠背离人的自律力而控制了人的某种东西。"<span class="kw-link" data-id="b1-1c">卢卡奇</span>从资本主义社会变迁中看到了物化结构的形成以及这一结构对人的活动与心理、意识的影响，形成了系统的物化批判理论。这一理论直接启发了法兰克福学派对工具理性和<span class="kw-link" data-id="b1-2a">文化工业</span>的批判。</p>
+
+<h3>二、批判对象：<span class="kw-link" data-id="b1-2a">文化工业</span></h3>
+<p><span class="kw-link" data-id="b1-2b">霍克海默</span>与<span class="kw-link" data-id="b1-2b">阿多诺</span>在《启蒙辩证法》（1944）中提出了"<span class="kw-link" data-id="b1-2a">文化工业</span>"概念。在该书"<span class="kw-link" data-id="b1-2a">文化工业</span>：作为大众欺骗的启蒙"一章中，他们系统地批判了资本主义将文化变成流水线商品的现象。<span class="kw-link" data-id="b1-2b">霍克海默</span>与<span class="kw-link" data-id="b1-2b">阿多诺</span>指出，<span class="kw-link" data-id="b1-2a">文化工业</span>受满足"大众"需要的商业力量所操纵，以娱乐消遣为目的，丧失了作为艺术本质的否定与超越精神。他们在草稿中原本使用"大众文化"一词，但为了从一开始就避免与真正的大众文化相混淆，最终采用了"<span class="kw-link" data-id="b1-2a">文化工业</span>"取而代之。</p>
+<p><span class="kw-link" data-id="b1-2b">阿多诺</span>在《棱镜》（1967）中进一步阐释了<span class="kw-link" data-id="b1-2a">文化工业</span>的标准化特征。<span class="kw-link" data-id="b1-2b">阿多诺</span>指出，电影、音乐、综艺都是按照标准化的公式生产出来的"工业产品"，而不是独一无二的艺术品。他认为，充满虚假性与标准性的<span class="kw-link" data-id="b1-2a">文化工业</span>产品导致了个体自由意识的泯灭，使个体丧失了自身的否定性与批判性，继而成为了毫无思想、毫无特殊性的个体。</p>
+
+<h3>三、运行机制</h3>
+<p><span class="kw-link" data-id="b1-2b">阿多诺</span>揭示了<span class="kw-link" data-id="b1-2a">文化工业</span>的四个核心特征：<span class="kw-link" data-id="b1-4">标准化</span>、<span class="kw-link" data-id="b1-4">模式化</span>、<span class="kw-link" data-id="b1-4">商业化</span>、<span class="kw-link" data-id="b1-4">强制性</span>。<span class="kw-link" data-id="b1-2a">文化工业</span>以追求利润为最终目的，将艺术创作降格为商品生产。"伪个性化"掩盖了其背后的标准化本质——所有歌曲都是主歌副歌循环，所有电影都遵循相似的叙事结构。面对<span class="kw-link" data-id="b1-2a">文化工业</span>产品，消费者只能消极被动地接受，失去了任何抵抗的能力。</p>
+<p><span class="kw-link" data-id="b1-2a">文化工业</span>批判与<span class="kw-link" data-id="b1-1b">马克思</span>的<span class="kw-link" data-id="b1-1b">商品拜物教</span>批判之间存在着深刻的思想谱系关系。《启蒙辩证法》在对资本主义<span class="kw-link" data-id="b1-2a">文化工业</span>现象进行解码时，揭示了其拜物教本质，从而彰显为一种"<span class="kw-link" data-id="b1-2a">文化商品拜物教</span>"批判。</p>
+
+<h3>四、主体影响：<span class="kw-link" data-id="b1-3">单向度的人</span></h3>
+<p><span class="kw-link" data-id="b1-3">马尔库塞</span>在《<span class="kw-link" data-id="b1-3">单向度的人</span>》（1964）中进一步推进了这一批判。<span class="kw-link" data-id="b1-3">马尔库塞</span>在书中提出，在发达工业社会，科学技术、大众文化、消费主义共同编织了一张无所不在的统治之网，人被塑造成只会消费、不会批判的"单面人"，彻底丧失了否定和超越的能力。<span class="kw-link" data-id="b1-3">马尔库塞</span>的总体异化理论将<span class="kw-link" data-id="b1-1a">马克思</span>的经济异化扩展到文化、消费、心理的全方位异化——人不再能够想象一个不同于现状的选择，革命的潜能被消费的满足所取代，批判的锋芒被娱乐的麻醉所消解。</p>
+
+<h3>五、解放路径：<span class="kw-link" data-id="b1-5a">公共领域</span>的重建</h3>
+<p><span class="kw-link" data-id="b1-5b">哈贝马斯</span>在《<span class="kw-link" data-id="b1-5a">公共领域的结构转型</span>》（1962）中追溯了公共领域从古希腊到现代资产阶级社会的演变。<span class="kw-link" data-id="b1-5b">哈贝马斯</span>指出，理想的公共生活本应是理性讨论的空间，但随着资本主义的市场化进程，公共领域在资本和国家的双重殖民下走向衰落，从自主的公众蜕变为被动的消费大众。在《<span class="kw-link" data-id="b1-5b">交往行动理论</span>》（1981）中，<span class="kw-link" data-id="b1-5b">哈贝马斯</span>进一步提出了通过交往理性恢复公共领域批判功能的方案。</p>
+
+<h3>小结</h3>
+<p>法兰克福学派开启了文化批判的先河。它揭示了资本主义如何将文化从自由的精神创造降格为标准化的工业流水线，将人从具有批判能力的主体改造为只会消费的单面人。然而，其悲观的大众观和精英主义立场也受到后续学派的批评。</p>
+
+<h2>第二章 传播政治经济学：资本主义如何将传播商品化</h2>
+<h3>一、理论源头</h3>
+<p>传播政治经济学派同样从<span class="kw-link" data-id="b2-1">马克思</span>的<span class="kw-link" data-id="b2-1">劳动价值论</span>出发，但择取了<span class="kw-link" data-id="b2-1">马克思</span>的不同面向。<span class="kw-link" data-id="b2-1">马克思</span>在《资本论》（1867）中揭示了资本主义生产的核心秘密：劳动者创造的价值大于其劳动力的价值，差额即为剩余价值，被资本家无偿占有。这一分析框架被传播政治经济学者创造性地应用于传播领域。</p>
+
+<h3>二、批判对象：<span class="kw-link" data-id="b2-2a">受众商品</span>与<span class="kw-link" data-id="b2-2b">数字劳动</span></h3>
+<p><strong>（一）<span class="kw-link" data-id="b2-2a">斯麦兹</span>与<span class="kw-link" data-id="b2-2a">受众商品论</span></strong></p>
+<p><span class="kw-link" data-id="b2-2a">斯麦兹</span>于1977年在《传播：西方马克思主义的盲点》一文中正式系统阐述了"<span class="kw-link" data-id="b2-2a">受众商品论</span>"。<span class="kw-link" data-id="b2-2a">斯麦兹</span>运用历史唯物主义的方法研究了受众、传播媒介和广告商三者的相互关系，开创了传播政治经济学之先河。</p>
+<p><span class="kw-link" data-id="b2-2a">斯麦兹</span>的核心论点是：大众媒介生产的真正商品不是节目内容，而是受众本身。媒介通过提供内容作为"免费午餐"吸引受众，然后将集合起来的受众及其注意力作为商品出售给广告商。在发达的资本主义社会，所有的时间都是劳动时间，受众通过观看、投入注意力等劳动，从先前的"受众"成为"<span class="kw-link" data-id="b2-2a">受众商品</span>"。</p>
+<p><span class="kw-link" data-id="b2-2a">斯麦兹</span>的论文引发了传播政治经济学史上著名的"盲点之争"——西方马克思主义者普遍忽视了传播的经济维度，而<span class="kw-link" data-id="b2-2a">斯麦兹</span>恰恰填补了这一盲点。</p>
+
+<p><strong>（二）<span class="kw-link" data-id="b2-2b">福克斯</span>与<span class="kw-link" data-id="b2-2b">数字劳动</span>理论</strong></p>
+<p><span class="kw-link" data-id="b2-2b">福克斯</span>在《<span class="kw-link" data-id="b2-2b">数字劳动</span>与<span class="kw-link" data-id="b2-2b">卡尔·马克思</span>》（2014）中构建了系统的"<span class="kw-link" data-id="b2-2b">数字劳动</span>"理论。<span class="kw-link" data-id="b2-2b">福克斯</span>继承了<span class="kw-link" data-id="b2-1">马克思</span>的资本积累理论、传播政治经济学派的受众劳动理论和法兰克福学派的批判理论，将<span class="kw-link" data-id="b2-2b">数字劳动</span>的涵盖范围扩展至整个信息与通信技术产业链条和广泛的数字用户。</p>
+<p><span class="kw-link" data-id="b2-2b">福克斯</span>在书中以互联网产消者劳动为例，着重说明了在社交媒体平台急速发展的新形势下劳动者所遭受的无酬劳动困境。他指出，信息和通信技术产品往往具有一种"商品美学意识形态"，欺骗、隐藏和重新编码了实际的血腥与汗水。<span class="kw-link" data-id="b2-2b">福克斯</span>从<span class="kw-link" data-id="b2-1">马克思</span>的<span class="kw-link" data-id="b2-1">劳动价值论</span>出发重新定义<span class="kw-link" data-id="b2-2b">数字劳动</span>，将<span class="kw-link" data-id="b2-2b">数字劳动</span>的涵盖范围扩展至整个信息技术产业链条和广泛的数字用户。</p>
+
+<p><strong>（三）<span class="kw-link" data-id="b2-2c">斯尔尼塞克</span>与<span class="kw-link" data-id="b2-2c">平台资本主义</span></strong></p>
+<p><span class="kw-link" data-id="b2-2c">斯尔尼塞克</span>在《<span class="kw-link" data-id="b2-2c">平台资本主义</span>》（2017）中提出了"<span class="kw-link" data-id="b2-2c">平台资本主义</span>"概念。<span class="kw-link" data-id="b2-2c">斯尔尼塞克</span>指出，平台的出现是资本主义应对自身危机的产物——"20世纪70年代对经济衰退的反应、20世纪90年代的网络繁荣和萧条以及2008年对金融危机的反应"。平台以对数据的攫取和控制为主要特征，数据成为核心原材料。</p>
+<p><span class="kw-link" data-id="b2-2c">斯尔尼塞克</span>在书中将平台分为五种类型：广告平台、云平台、工业平台、共享平台和精益平台。他指出，这些平台的竞争围绕三个核心要素展开：数据、注意力、基础设施。<span class="kw-link" data-id="b2-2c">平台资本主义</span>并不会改变全球经济低迷的局面，反而会在垄断中收获巨额财富。</p>
+
+<p><strong>（四）<span class="kw-link" data-id="b2-2d">库尔德利</span>与媒介权力</strong></p>
+<p><span class="kw-link" data-id="b2-2d">库尔德利</span>在《媒介、社会与世界：社会理论与数字媒介实践》（2012）中提出了"<span class="kw-link" data-id="b2-2d">媒介权力</span>"分析框架。<span class="kw-link" data-id="b2-2d">库尔德利</span>从媒介的"意义""政治""空间""时间""数据"等不同维度出发，揭示了一种新型的媒介权力正在<span class="kw-link" data-id="b2-2c">平台资本主义</span>语境下生成。他特别强调了"数据化"作为当代社会新的权力机制——数据化不仅是技术过程，更是社会秩序的重构过程。</p>
+
+<h3>三、运行机制</h3>
+<p><span class="kw-link" data-id="b2-2b">福克斯</span>揭示了<span class="kw-link" data-id="b2-2b">数字劳动</span>的剥削机制：数据商品的价值是由互联网平台企业的雇佣劳动者创造的，而非用户。但用户的无偿劳动（发帖、评论、浏览）同样为平台创造了价值，这种价值以数据的形式被平台无偿占有。<span class="kw-link" data-id="b2-2c">斯尔尼塞克</span>则揭示了平台垄断的形成机制：平台通过提供中介服务吸引用户，收集用户数据，再利用数据优化服务吸引更多用户，形成"数据—用户—数据"的正反馈循环，最终实现垄断。</p>
+
+<h3>四、主体影响</h3>
+<p>基于<span class="kw-link" data-id="b2-2b">数字劳动</span>的算法操纵，主体陷入了自由与保障的双重困境。我们被许诺了"自由"——自由地表达、自由地连接、自由地创造；但这种自由恰恰是剥削的前提——我们的自由表达为平台创造了价值，我们的自由连接为平台提供了数据。用户本质上是主体与数字化媒介的结合——既是使用者，也是被使用的资源。</p>
+
+<h3>五、解放路径</h3>
+<p><span class="kw-link" data-id="b2-5a">福克斯</span>在《数字劳动与卡尔·马克思》（2014）中呼吁通过"数字无产阶级的占领运动"，以非商业、非盈利和公有的互联网取代商业性、盈利性和私有的资本主义互联网。<span class="kw-link" data-id="b2-5b">斯尔尼塞克</span>则在《<span class="kw-link" data-id="b2-2c">平台资本主义</span>》（2017）中提出了缩短工作时间、实施全民基本收入、加强平台监管等具体方案。</p>
+
+<h2>第三章 文化研究：权力如何通过意义建构实现统治</h2>
+<h3>一、理论源头</h3>
+<p>文化研究学派的理论源头可追溯至两位重要的马克思主义理论家：<span class="kw-link" data-id="b3-1a">葛兰西</span>与<span class="kw-link" data-id="b3-1b">阿尔都塞</span>。</p>
+<p><span class="kw-link" data-id="b3-1a">葛兰西</span>在《<span class="kw-link" data-id="b3-1a">狱中札记</span>》（1929-1935）中提出了"<span class="kw-link" data-id="b3-1a">文化霸权</span>"理论。<span class="kw-link" data-id="b3-1a">葛兰西</span>指出，统治阶级不仅靠暴力（军队、警察）统治，更靠意识形态上的"领导权"——他们把自己的价值观包装成"全社会都应该遵守的常识"，让被统治阶级心甘情愿地接受。这种统治不是强迫，而是"同意"。<span class="kw-link" data-id="b3-1a">葛兰西</span>对于文化和精神活动在改造社会中的作用的重视，引导他逐步提出了霸权概念，这一概念对当代西方政治哲学尤其是西方马克思主义意识形态理论产生了重要影响。</p>
+<p><span class="kw-link" data-id="b3-1b">阿尔都塞</span>在《<span class="kw-link" data-id="b3-1b">意识形态和意识形态国家机器</span>》（1970）一文中进一步发展了<span class="kw-link" data-id="b3-1a">葛兰西</span>的理论。<span class="kw-link" data-id="b3-1b">阿尔都塞</span>在这篇文章中提出了"<span class="kw-link" data-id="b3-1b">意识形态国家机器</span>"概念，指出学校、媒体、家庭、教会等机构的功能是"生产条件的再生产"。<span class="kw-link" data-id="b3-1b">阿尔都塞</span>不仅论证了<span class="kw-link" data-id="b3-1b">意识形态国家机器</span>如何维持生产条件的再生产，还强调了意识形态把个体"询唤"为主体的自我臣服机制。如果说<span class="kw-link" data-id="b3-1a">葛兰西</span>回答的是"统治阶级如何赢得同意"，那么<span class="kw-link" data-id="b3-1b">阿尔都塞</span>回答的则是"个体如何主动成为被统治的主体"。</p>
+<p>英国文化研究（伯明翰学派）经历了从文化主义到结构主义再到葛兰西转向的理论演进。<span class="kw-link" data-id="b3-1c">霍加特</span>在《<span class="kw-link" data-id="b3-1c">识字的用途</span>》（1957）中从文化主义立场出发，强调文化的日常性和普通人创造意义的能力。<span class="kw-link" data-id="b3-1d">威廉斯</span>在《文化与社会》（1958）和《漫长的革命》（1961）中进一步发展了文化主义的文化定义，将文化理解为一种整体的生活方式。随后，<span class="kw-link" data-id="b3-1b">阿尔都塞</span>的结构主义范式使文化研究偏离了文化主义的整体描述性方法。而"葛兰西转向"则标志着<span class="kw-link" data-id="b3-1a">文化霸权</span>的概念开始得到充分重视。</p>
+
+<h3>二、批判对象：<span class="kw-link" data-id="b3-2a">编码与解码</span></h3>
+<p><span class="kw-link" data-id="b3-2a">霍尔</span>在《电视话语的制码解码》（1980）一文中提出了"<span class="kw-link" data-id="b3-2a">编码/解码</span>"理论。<span class="kw-link" data-id="b3-2a">霍尔</span>在这篇文章中打破了传统传媒研究的意义透明观，认为传播不是从发送者到接收者的线性传递，而是一个包含编码与解码两个环节的意义生产循环。编码者（媒体）按照特定的意识形态框架将事件加工为文本，而解码者（受众）则可以根据自己的立场对文本进行不同的解读。</p>
+<p><span class="kw-link" data-id="b3-2a">霍尔</span>在文中提出了三种解码立场：主导—霸权式解读（受众完全接受编码者的意识形态框架）、协商式解读（受众部分接受、部分修正）和对抗式解读（受众以完全不同的框架重新解读文本）。这一理论改变了受众研究的传统线性理解，颠覆了法兰克福学派的消极受众论。</p>
+
+<h3>三、运行机制</h3>
+<p>从编码端来看，<span class="kw-link" data-id="b3-1a">葛兰西</span>在《<span class="kw-link" data-id="b3-1a">狱中札记</span>》中提出的<span class="kw-link" data-id="b3-1a">文化霸权</span>理论和<span class="kw-link" data-id="b3-1b">阿尔都塞</span>在《<span class="kw-link" data-id="b3-1b">意识形态和意识形态国家机器</span>》中提出的<span class="kw-link" data-id="b3-1b">意识形态国家机器</span>理论，共同揭示了权力如何通过意义实现统治。统治阶级通过传播本阶级的世界观和思想，建立维护其统治的机构和组织，让被统治阶级自愿"同意"被统治。</p>
+<p>从解码端来看，<span class="kw-link" data-id="b3-2a">霍尔</span>在《电视话语的制码解码》中提出的三种解码立场揭示了意义争夺的战场就在每一个观众的头脑中。<span class="kw-link" data-id="b3-2b">德塞都</span>在《日常生活实践》（1984）中进一步提出了"战术抵抗"理论。<span class="kw-link" data-id="b3-2b">德塞都</span>在该书中指出，日常生活是权力机制规训压制弱势群体的场所；但大众并非被动、沉默的他者，在他们貌似恭顺服从的外表之下，充满着韧性的捍卫和巧妙的改造。</p>
+
+<h3>四、主体影响</h3>
+<p>人在文化研究中呈现出双重身份：一方面被<span class="kw-link" data-id="b3-1b">意识形态国家机器</span>规训（"询唤"为主体），另一方面又在日常生活中进行"微型实践"式的抵抗。这种张力构成了文化研究的独特魅力——人既不是法兰克福学派眼中完全被动的"单面人"，也不是传播政治经济学派眼中纯粹被剥削的"<span class="kw-link" data-id="b2-2b">数字劳工</span>"，而是既被权力塑造又不断挑战权力的复杂存在。</p>
+
+<h3>五、解放路径：<span class="kw-link" data-id="b3-2c">文本盗猎</span></h3>
+<p><span class="kw-link" data-id="b3-2c">詹金斯</span>在《<span class="kw-link" data-id="b3-2c">文本盗猎者</span>：电视粉丝与参与式文化》（1992）中提出了"<span class="kw-link" data-id="b3-2c">文本盗猎</span>"理论。<span class="kw-link" data-id="b3-2c">詹金斯</span>在该书中指出，粉丝不是被动消费文本，而是主动盗取素材进行二次创作，在消费中创造自己的意义。<span class="kw-link" data-id="b3-2c">詹金斯</span>将粉丝定位为"<span class="kw-link" data-id="b3-2c">文本盗猎者</span>"与"游牧民"，肯定了粉丝作为意义操控者和文本生产者的主体性。在数字技术时代，粉丝通过体验式分享、解码式组合和架空式创作等参与方式，确立了自己作为意义操控者和文本生产者的主体性。</p>
+
+<h2>第四章 后现代批判：从文化商品到拟像社会</h2>
+<p>如果说前三章构成了批判学派传播理论的核心脉络，那么后现代批判则代表了这一脉络的激进转向。</p>
+<p><span class="kw-link" data-id="b4-1">鲍德里亚</span>在《拟像与仿真》（1981）中提出了"<span class="kw-link" data-id="b4-1">拟像社会</span>"理论。<span class="kw-link" data-id="b4-1">鲍德里亚</span>在该书中指出，大众媒介造成了各种界限的"内爆"，现实和想象、真实和虚假的界限已经模糊，使我们进入了"超真实"的世界。<span class="kw-link" data-id="b4-1">鲍德里亚</span>将"<span class="kw-link" data-id="b4-1">拟像</span>""模型先在""内爆"三重概念有机结合，描绘出孤离于"真实"的"超真实"图景。在后现代的消费社会中，媒介的意识形态性质已经不复存在——没有意识形态，只有"<span class="kw-link" data-id="b4-1">拟像</span>"。<span class="kw-link" data-id="b4-1">鲍德里亚</span>在《象征交换与死亡》（1976）中进一步阐述了这一观点。</p>
+<p><span class="kw-link" data-id="b4-2">布迪厄</span>在《关于电视》（1996）中提出了"新闻场域"理论。<span class="kw-link" data-id="b4-2">布迪厄</span>在该书中运用"场域""资本""惯习"等概念分析文化生产与传播中的权力关系，揭示了新闻场域如何受到经济资本和政治资本的支配，以及这种支配如何通过貌似"中立"的新闻实践得以实现。<span class="kw-link" data-id="b4-2">布迪厄</span>在《区隔：趣味判断的社会批判》（1979）中进一步分析了文化消费如何再生产社会等级。</p>
+<p><span class="kw-link" data-id="b4-3">萨义德</span>在《东方学》（1978）中提出了"<span class="kw-link" data-id="b4-3">东方主义</span>"批判。<span class="kw-link" data-id="b4-3">萨义德</span>在该书中深刻揭露了隐藏在西方帝国主义与殖民主义经验事实中的文化殖民策略，指出<span class="kw-link" data-id="b4-3">东方主义</span>将东方文化与人民当作异域猎奇的风物，使其本质化为一种异己的对象，使东方沦为西方的"他者"。<span class="kw-link" data-id="b4-3">萨义德</span>在《文化与帝国主义》（1993）中进一步将这一批判延伸到文学与文化研究领域。</p>
+
+<h2>第五章 比较与总结</h2>
+<h3>一、三大学派分别批判什么？</h3>
+<p>法兰克福学派、传播政治经济学派与文化研究学派虽然共享马克思主义的思想底色，但各自的批判对象存在显著差异。</p>
+<p>法兰克福学派批判的是文化生产的标准化与商品化。<span class="kw-link" data-id="b1-2b">霍克海默</span>与<span class="kw-link" data-id="b1-2b">阿多诺</span>在《启蒙辩证法》中追问：资本主义如何将文化从自由的精神创造降格为可复制的工业流水线？其核心概念是"<span class="kw-link" data-id="b1-2a">文化工业</span>"和"<span class="kw-link" data-id="b1-3">单向度的人</span>"，人在这里是被动的接受者。</p>
+<p>传播政治经济学派批判的是传播与劳动的商品化与数据剥削。<span class="kw-link" data-id="b2-2a">斯麦兹</span>在《传播：西方马克思主义的盲点》中提出"<span class="kw-link" data-id="b2-2a">受众商品论</span>"，<span class="kw-link" data-id="b2-2b">福克斯</span>在《数字劳动与卡尔·马克思》中发展为"<span class="kw-link" data-id="b2-2b">数字劳动</span>"理论，<span class="kw-link" data-id="b2-2c">斯尔尼塞克</span>在《<span class="kw-link" data-id="b2-2c">平台资本主义</span>》中进一步提出"<span class="kw-link" data-id="b2-2c">平台资本主义</span>"——他们共同追问：资本主义如何将人的注意力、行为和生命经验都转化为可被剥削的商品？人在这里是被剥削的劳工。</p>
+<p>文化研究学派批判的是意义的编码与解码中的权力运作。<span class="kw-link" data-id="b3-1a">葛兰西</span>在《<span class="kw-link" data-id="b3-1a">狱中札记</span>》中提出"<span class="kw-link" data-id="b3-1a">文化霸权</span>"，<span class="kw-link" data-id="b3-1b">阿尔都塞</span>在《<span class="kw-link" data-id="b3-1b">意识形态和意识形态国家机器</span>》中提出"<span class="kw-link" data-id="b3-1b">意识形态国家机器</span>"，<span class="kw-link" data-id="b3-2a">霍尔</span>在《电视话语的制码解码》中提出"<span class="kw-link" data-id="b3-2a">编码/解码</span>"理论——他们共同追问：权力如何通过文化符号的生产与流通实现统治？人在这里既是囚徒也是游击队员。</p>
+
+<h3>二、理论如何递进？</h3>
+<p>三大学派之间存在着清晰的逻辑递进关系。</p>
+<p>法兰克福学派回答的是第一个层面的问题：文化怎么被生产成商品？它揭示了资本主义文化生产的标准化逻辑，但将人视为完全被动的接受者。</p>
+<p>传播政治经济学派回答的是第二个层面的问题：生产过程中人怎么被剥削？它将批判从"文化"延伸到"经济"，揭示了传播本身就是一种被剥削的劳动，但将人主要视为经济结构的产物。</p>
+<p>文化研究学派回答的是第三个层面的问题：被剥削的人怎么偷偷反抗？它将批判从"经济结构"转向"意义争夺"，揭示了权力不仅通过经济统治人，更通过意义统治人，而人恰恰在意义的缝隙中寻找着抵抗的可能。</p>
+<p>后现代批判则进一步追问：当真实本身被消解之后，批判还有何可能？它将批判推向了本体论的层面。</p>
+<p>这是一条从结构批判（<span class="kw-link" data-id="b1-2a">文化工业</span>）到经济批判（传播商品化）到能动性批判（意义争夺）再到本体论批判（<span class="kw-link" data-id="b4-1">拟像社会</span>）的完整演进链条。</p>
+
+<h3>三、在算法时代如何继续发展？</h3>
+<p>在算法时代，批判理论面临着新的课题。</p>
+<p>第一，从<span class="kw-link" data-id="b1-1b">商品拜物教</span>到<span class="kw-link" data-id="b5-3a">数字拜物教</span>。<span class="kw-link" data-id="b2-1">马克思</span>在《资本论》中揭示了商品如何被赋予神秘的力量。在算法时代，数据、平台和算法构成了新的抽象统治。</p>
+<p>第二，从<span class="kw-link" data-id="b1-2a">文化工业</span>到<span class="kw-link" data-id="b5-3b">数字文化工业</span>。平台经济催生出以"<span class="kw-link" data-id="b1-2a">文化工业</span>"面貌运作的互联网文化产业。短视频的标准化生产、算法推荐的内容分发、流量逻辑的创作导向，都可以被视为<span class="kw-link" data-id="b1-2a">文化工业</span>在数字时代的升级版。</p>
+<p>第三，从监控资本主义到<span class="kw-link" data-id="b5-3c">数字帝国主义</span>。"算法革命"推动发达资本主义向<span class="kw-link" data-id="b5-3c">数字帝国主义</span>演变。少数科技公司不仅控制了全球的信息流动，更通过算法塑造着数十亿人的认知框架。</p>
+<p>第四，<span class="kw-link" data-id="b5-3d">批判范式的转换</span>。批判理论需要从"结构批判"转向"过程批判"，关注算法、数据、平台等新型权力装置的具体运作——算法推荐如何塑造认知？数据提取如何实现剥削？平台垄断如何维持统治？</p>
+<p>从<span class="kw-link" data-id="b1-2a">文化工业</span>到<span class="kw-link" data-id="b2-2c">平台资本主义</span>，批判的靶心在变，但批判的精神一脉相承——揭示权力如何通过文化与传播实现对人的统治，并寻找打破这种统治的可能性。这正是批判学派传播理论在算法时代的当代价值。</p>
+  `
+  }
+];
+
+// ===== TOPIC MINDMAP =====
+let currentTopicArticle = null;
+let mmSvg = null;
+let mmG = null;
+let mmSimulation = null;
+let mmZoom = null;
+let mmNodeData = [];
+let mmLinkData = [];
+
+function initTopicList() {
+  const list = document.getElementById('topic-list');
+  list.innerHTML = TOPIC_ARTICLES.map(a => `
+    <div class="topic-card" data-id="${a.id}" onclick="showArticle('${a.id}')">
+      <div class="tc-title">${a.title}</div>
+      <div class="tc-meta">${a.author} · ${a.date}</div>
+      <div class="tc-summary">${a.summary}</div>
+    </div>
+  `).join('');
+}
+
+function showArticle(articleId) {
+  const article = TOPIC_ARTICLES.find(a => a.id === articleId);
+  if (!article) return;
+  currentTopicArticle = article;
+
+  // Update active card
+  document.querySelectorAll('.topic-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.id === articleId);
+  });
+
+  // Render article
+  const articleEl = document.getElementById('topic-article');
+  articleEl.innerHTML = `
+    <h1>${article.title}</h1>
+    <div class="article-meta">${article.author} · ${article.date}</div>
+    <div class="article-keywords">
+      ${article.keywords.map(k => `<span onclick="jumpFromKeyword('${k}')">${k}</span>`).join('')}
+    </div>
+    <div class="article-content">${article.content}</div>
+  `;
+
+  // Bind kw-link clicks
+  articleEl.querySelectorAll('.kw-link').forEach(el => {
+    el.addEventListener('click', () => {
+      const mmNodeId = el.dataset.id;
+      highlightMindmapNode(mmNodeId);
+      const node = article.mindmap.nodes.find(n => n.id === mmNodeId);
+      if (node && node.graphId) {
+        jumpToGraph(node.graphId);
+      }
+    });
+  });
+
+  // Init mindmap
+  initTopicMindmap(articleId);
+}
+
+function jumpFromKeyword(keyword) {
+  if (!currentTopicArticle) return;
+  const node = currentTopicArticle.mindmap.nodes.find(n => n.label === keyword);
+  if (node) {
+    highlightMindmapNode(node.id);
+    if (node.graphId) {
+      jumpToGraph(node.graphId);
+    }
+  }
+}
+
+function initTopicMindmap(articleId) {
+  const article = TOPIC_ARTICLES.find(a => a.id === articleId);
+  if (!article) return;
+
+  const container = document.querySelector('.topic-mindmap');
+  const svgEl = document.getElementById('mindmap-svg');
+
+  // Clear previous
+  d3.select('#mindmap-svg').selectAll('*').remove();
+  if (mmSimulation) { mmSimulation.stop(); mmSimulation = null; }
+
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  if (w < 10 || h < 10) return; // container not visible yet
+
+  mmSvg = d3.select('#mindmap-svg')
+    .attr('width', w)
+    .attr('height', h)
+    .style('touch-action', 'none');
+
+  mmZoom = d3.zoom().scaleExtent([0.3, 3]).on('zoom', (event) => {
+    mmG.attr('transform', event.transform);
+  });
+  mmSvg.call(mmZoom);
+  mmG = mmSvg.append('g');
+
+  // ---- Build tree manually from flat data ----
+  const rawNodes = article.mindmap.nodes;
+  const rawLinks = article.mindmap.links;
+  const nodeMap = {};
+  rawNodes.forEach(n => { nodeMap[n.id] = { ...n, children: [], parent: null }; });
+  rawLinks.forEach(l => {
+    const s = nodeMap[l.source];
+    const t = nodeMap[l.target];
+    if (s && t) { s.children.push(t); t.parent = s; }
+  });
+
+  const root = nodeMap['root'];
+
+  // ---- Compute positions: recursive radial layout ----
+  const branchColors = ['#F07B6F', '#FF8C42', '#4ECDC4', '#9B59B6', '#E8A87C', '#85C1E9'];
+  root._x = 0; root._y = 0; root._color = '#7C6FF0'; root._depth = 0;
+
+  function layoutChildren(parentNode, startAngle, endAngle, radius, depth) {
+    const children = parentNode.children;
+    if (!children || children.length === 0) return;
+    const n = children.length;
+    const angularSpan = endAngle - startAngle;
+    children.forEach((child, i) => {
+      const angle = n === 1 ? (startAngle + endAngle) / 2 : startAngle + angularSpan * i / (n - 1);
+      child._x = radius * Math.cos(angle);
+      child._y = radius * Math.sin(angle);
+      child._color = depth === 1 ? branchColors[i % branchColors.length] : parentNode._color;
+      child._depth = depth;
+      // Recursively layout grandchildren with narrower angular spread
+      const childSpread = angularSpan / n * 0.85;
+      layoutChildren(child, angle - childSpread / 2, angle + childSpread / 2, radius + 80, depth + 1);
+    });
+  }
+
+  // Start: root at center, branches spread full circle
+  const branchCount = root.children.length;
+  layoutChildren(root, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI, 80, 1);
+
+  // Collect all positioned nodes
+  const allNodes = [];
+  function collect(n) { allNodes.push(n); n.children.forEach(collect); }
+  collect(root);
+  mmNodeData = allNodes;
+
+  // ---- Draw curved links ----
+  allNodes.forEach(n => {
+    if (!n.parent) return;
+    mmG.append('path')
+      .attr('class', 'mm-link')
+      .attr('d', 'M' + n.parent._x + ',' + n.parent._y +
+        ' Q' + ((n.parent._x + n._x) / 2) + ',' + ((n.parent._y + n._y) / 2) +
+        ' ' + n._x + ',' + n._y)
+      .attr('stroke', n._color)
+      .attr('stroke-opacity', n._depth === 1 ? 0.5 : 0.35)
+      .attr('fill', 'none')
+      .attr('stroke-width', n._depth === 1 ? 2.5 : 1.5);
+  });
+
+  // ---- Draw nodes ----
+  allNodes.forEach(n => {
+    const g = mmG.append('g')
+      .attr('class', 'mm-node')
+      .attr('data-id', n.id)
+      .attr('transform', 'translate(' + n._x + ',' + n._y + ')')
+      .on('click', function(event) {
+        event.stopPropagation();
+        if (n.graphId) jumpToGraph(n.graphId);
+        else highlightMindmapNode(n.id);
+      });
+
+    const r = Math.max(4, 14 - n._depth * 3);
+    // Glow for root
+    if (n._depth === 0) {
+      g.append('circle').attr('r', 24).attr('fill', n._color).attr('opacity', 0.1);
+    }
+    g.append('circle')
+      .attr('r', r)
+      .attr('fill', n._color)
+      .attr('stroke', n.graphId ? 'rgba(255,255,255,0.6)' : 'transparent')
+      .attr('stroke-width', n.graphId ? 2.5 : 0);
+
+    // Text placement based on angle from center
+    const angle = Math.atan2(n._y, n._x);
+    let anchor = 'middle', dx = 0, dy = 0;
+    if (n._depth === 0) {
+      dy = -r - 10; anchor = 'middle';
+    } else {
+      // Place text outward from center
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      if (Math.abs(cos) > 0.3) {
+        dx = (cos > 0 ? 1 : -1) * (r + 8);
+        anchor = cos > 0 ? 'start' : 'end';
+        dy = sin * 4;
+      } else {
+        dy = (sin > 0 ? 1 : -1) * (r + 14);
+        anchor = 'middle';
+        dx = 0;
+      }
+    }
+
+    const fs = Math.max(8, 13 - n._depth * 2) + 'px';
+    const fw = n._depth === 0 ? '700' : n._depth === 1 ? '600' : '400';
+    g.append('text')
+      .attr('text-anchor', anchor)
+      .attr('dy', dy)
+      .attr('dx', dx)
+      .style('font-size', fs)
+      .style('font-weight', fw)
+      .style('fill', 'var(--ink)')
+      .style('font-family', "'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',sans-serif")
+      .style('pointer-events', 'none')
+      .text(n.label);
+  });
+
+  // Auto fit
+  setTimeout(() => fitMindmap(), 150);
+}
+
+function fitMindmap() {
+  if (!mmG) return;
+  const bounds = mmG.node().getBBox();
+  if (bounds.width <= 0 || bounds.height <= 0) return;
+  const container = document.querySelector('.topic-mindmap');
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  const padding = 60;
+  const scale = Math.min((w - padding) / bounds.width, (h - padding) / bounds.height, 2) * 0.9;
+  const tx = w / 2 - (bounds.x + bounds.width / 2) * scale;
+  const ty = h / 2 - (bounds.y + bounds.height / 2) * scale;
+  mmSvg.transition().duration(600).call(mmZoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+
+function highlightMindmapNode(nodeId) {
+  if (!mmG) return;
+  mmG.selectAll('.mm-node').classed('highlighted', false);
+  const target = mmG.select('.mm-node[data-id="' + nodeId + '"]');
+  if (!target.empty()) {
+    target.classed('highlighted', true);
+    const nodeData = mmNodeData.find(n => n.id === nodeId);
+    if (nodeData && nodeData._x !== undefined) {
+      const container = document.querySelector('.topic-mindmap');
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      mmSvg.transition().duration(400).call(
+        mmZoom.transform,
+        d3.zoomIdentity.translate(w / 2 - nodeData._x, h / 2 - nodeData._y).scale(1.5)
+      );
+    }
+  }
+}
+
+function jumpToGraph(graphId) {
+  setMode('graph');
+  setTimeout(() => {
+    const n = nodes.find(n => n.id === graphId);
+    if (n) {
+      focusNode(graphId, n.type);
+    }
+  }, 100);
+}
+
 // ===== MODE SWITCH =====
 let currentMode = 'graph';
 const gameArea = document.getElementById('game-area');
@@ -1361,9 +2142,13 @@ function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#bottom-tabs .tab').forEach(b => b.classList.remove('active'));
+  const graphCanvas = document.getElementById('graph-canvas');
+  const topicSection = document.getElementById('topic-section');
   if (mode === 'graph') {
     document.querySelector('.mode-btn:nth-child(2)').classList.add('active');
     document.getElementById('tab-graph').classList.add('active');
+    graphCanvas.style.display = '';
+    topicSection.classList.remove('active');
     gameArea.classList.remove('active');
     cardContainer.style.display = 'block';
     gameScoreEl.textContent = '';
@@ -1371,13 +2156,34 @@ function setMode(mode) {
   } else if (mode === 'game') {
     document.querySelector('.mode-btn:nth-child(3)').classList.add('active');
     document.getElementById('tab-game').classList.add('active');
+    graphCanvas.style.display = '';
+    topicSection.classList.remove('active');
     gameArea.classList.add('active');
     cardContainer.style.display = 'none';
     gameScoreEl.textContent = '\u2B50 '+gameScore+'\u5206';
     nextGameQuestion();
     openSidePanel();
+  } else if (mode === 'topic') {
+    document.querySelector('.mode-btn:nth-child(4)').classList.add('active');
+    document.getElementById('tab-topic').classList.add('active');
+    graphCanvas.style.display = 'none';
+    topicSection.classList.add('active');
+    gameArea.classList.remove('active');
+    cardContainer.style.display = 'block';
+    gameScoreEl.textContent = '';
+    closeSidePanel();
+    // Initialize if first time
+    if (!currentTopicArticle) {
+      initTopicList();
+      showArticle(TOPIC_ARTICLES[0].id);
+    } else {
+      // Re-fit mindmap on resize/show
+      setTimeout(() => fitMindmap(), 50);
+    }
   } else if (mode === 'search') {
     document.getElementById('tab-search').classList.add('active');
+    graphCanvas.style.display = '';
+    topicSection.classList.remove('active');
     gameArea.classList.remove('active');
     cardContainer.style.display = 'block';
     gameScoreEl.textContent = '';
@@ -1392,6 +2198,8 @@ function setMobileTab(tab) {
     setMode('search');
   } else if (tab === 'game') {
     setMode('game');
+  } else if (tab === 'topic') {
+    setMode('topic');
   }
 }
 
