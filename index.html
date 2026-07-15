@@ -2165,7 +2165,11 @@ function initTopicMindmap(articleId) {
     if (s && t) { s.children.push(t); t.parent = s; }
   });
 
-  const root = nodeMap['root'];
+  // Find root node dynamically (node with no incoming links)
+  const hasParent = new Set(rawLinks.map(l => l.target));
+  const rootId = rawNodes.find(n => !hasParent.has(n.id))?.id;
+  const root = rootId ? nodeMap[rootId] : null;
+  if (!root) { console.error('No root node found for mindmap'); return; }
 
   // ---- Compute positions: recursive radial layout ----
   const branchColors = ['#F07B6F', '#FF8C42', '#4ECDC4', '#9B59B6', '#E8A87C', '#85C1E9'];
