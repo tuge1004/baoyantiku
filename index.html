@@ -18531,9 +18531,9 @@ let answeredBlanks = {}; // { blankId: answer }
 function generateQuestion() {
   const types = [
     'theory-scholar','scholar-theory','book-scholar','scholar-school',
-    'theory-year','research-scholar','scholar-nationality','theory-topic',
-    'dual-scholar-theory-year','dual-theory-scholar-book','dual-scholar-school-theory',
-    'book-year','research-desc','school-scholars','topic-theory-count'
+    'research-scholar','scholar-nationality','theory-topic',
+    'dual-theory-scholar-book','dual-scholar-school-theory',
+    'research-desc','theory-desc','theory-school'
   ];
   const type = types[Math.floor(Math.random() * types.length)];
   let q = '', answers = [], hintType = '';
@@ -18569,7 +18569,7 @@ function generateQuestion() {
         const b = DATA.books[Math.floor(Math.random()*DATA.books.length)];
         const s = scholarMap[b.scholar];
         if (!s) { valid=false; break; }
-        q = '\u201C'+b.name+'\u201D('+b.year+')的作者是<span class="blank" id="blank0">______</span>。';
+        q = '\u201C'+b.name+'\u201D的作者是<span class="blank" id="blank0">______</span>。';
         answers = [s.name]; blankCount=1; currentBlankIdx=0;
         hintType = '著作\u2192人物';
         break;
@@ -18583,11 +18583,11 @@ function generateQuestion() {
         hintType = '人物\u2192学派';
         break;
       }
-      case 'theory-year': {
+      case 'theory-desc': {
         const t = DATA.theories[Math.floor(Math.random()*DATA.theories.length)];
-        q = '\u201C'+t.name+'\u201D理论提出于<span class="blank" id="blank0">______</span>年。';
-        answers = [String(t.year)]; blankCount=1; currentBlankIdx=0;
-        hintType = '理论\u2192年份';
+        q = '<span class="blank" id="blank0">______</span>（理论名称）'+(t.desc||'');
+        answers = [t.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '描述\u2192理论';
         break;
       }
       case 'research-scholar': {
@@ -18618,11 +18618,15 @@ function generateQuestion() {
         hintType = '理论\u2192专题';
         break;
       }
-      case 'book-year': {
-        const b = DATA.books[Math.floor(Math.random()*DATA.books.length)];
-        q = '\u201C'+b.name+'\u201D出版于<span class="blank" id="blank0">______</span>年。';
-        answers = [String(b.year)]; blankCount=1; currentBlankIdx=0;
-        hintType = '著作\u2192年份';
+      case 'theory-school': {
+        const t = DATA.theories[Math.floor(Math.random()*DATA.theories.length)];
+        const s = scholarMap[t.scholar];
+        if (!s) { valid=false; break; }
+        const sc = schoolMap[s.school];
+        if (!sc) { valid=false; break; }
+        q = '\u201C'+t.name+'\u201D属于<span class="blank" id="blank0">______</span>（学派）。';
+        answers = [sc.name]; blankCount=1; currentBlankIdx=0;
+        hintType = '理论\u2192学派';
         break;
       }
       case 'research-desc': {
@@ -18632,37 +18636,7 @@ function generateQuestion() {
         hintType = '描述\u2192研究名';
         break;
       }
-      case 'school-scholars': {
-        const sc = DATA.schools[Math.floor(Math.random()*DATA.schools.length)];
-        const srs = DATA.scholars.filter(s=>s.school===sc.id);
-        if (srs.length<3) { valid=false; break; }
-        q = '\u201C'+sc.name+'\u201D的代表人物不包括：\nA. <span class="blank" id="blank0">______</span>\n（请填入不属于该学派的人名）';
-        const otherSrs = DATA.scholars.filter(s=>s.school!==sc.id);
-        if (!otherSrs.length) { valid=false; break; }
-        const wrong = otherSrs[Math.floor(Math.random()*otherSrs.length)];
-        answers = [wrong.name]; blankCount=1; currentBlankIdx=0;
-        hintType = '学派\u2192排错';
-        break;
-      }
-      case 'topic-theory-count': {
-        const tps = DATA.topics.filter(tp=>tp.theories&&tp.theories.length>0);
-        if (!tps.length) { valid=false; break; }
-        const tp = tps[Math.floor(Math.random()*tps.length)];
-        q = '\u201C'+tp.name+'\u201D专题涵盖约<span class="blank" id="blank0">______</span>个理论。';
-        answers = [String(tp.theories.length)]; blankCount=1; currentBlankIdx=0;
-        hintType = '专题\u2192理论数';
-        break;
-      }
       // ===== DUAL BLANK QUESTIONS =====
-      case 'dual-scholar-theory-year': {
-        const t = DATA.theories[Math.floor(Math.random()*DATA.theories.length)];
-        const s = scholarMap[t.scholar];
-        if (!s) { valid=false; break; }
-        q = '\u201C'+t.name+'\u201D由<span class="blank" id="blank0">______</span>于<span class="blank" id="blank1">______</span>年提出。';
-        answers = [s.name, String(t.year)]; blankCount=2; currentBlankIdx=0;
-        hintType = '双空：理论\u2192人物+年份';
-        break;
-      }
       case 'dual-theory-scholar-book': {
         const s = DATA.scholars[Math.floor(Math.random()*DATA.scholars.length)];
         const ths = DATA.theories.filter(t=>t.scholar===s.id);
