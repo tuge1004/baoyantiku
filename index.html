@@ -266,11 +266,113 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
   font-size: 0.82em;
   margin-right: 4px;
 }
+.notes-toc {
+  flex: 0 0 200px;
+  overflow-y: auto;
+  padding: 16px 12px;
+  border-right: 1px solid var(--rule);
+  background: var(--bg2);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  max-height: 100%;
+}
+.notes-toc::-webkit-scrollbar { width: 3px; }
+.notes-toc::-webkit-scrollbar-thumb { background: rgba(124,111,240,0.2); border-radius: 2px; }
+.notes-toc .toc-book {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--ink);
+  margin: 16px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+}
+.notes-toc .toc-book:first-child { margin-top: 0; }
+.notes-toc .toc-book:hover { color: var(--accent); }
+.notes-toc .toc-h2 {
+  padding-left: 10px;
+  margin: 4px 0 2px;
+  color: var(--muted);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notes-toc .toc-h2:hover { color: var(--accent); }
+.notes-toc .toc-h3 {
+  padding-left: 20px;
+  margin: 2px 0;
+  color: var(--muted);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notes-toc .toc-h3:hover { color: var(--accent); }
+.notes-toc .toc-active {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
 .topic-notes h4 {
   font-size: 0.92rem;
   color: var(--ink);
   margin: 12px 0 6px;
   font-weight: 600;
+}
+.notes-toc-inline {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+}
+.notes-toc-inline .toc-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.notes-toc-inline .toc-toggle {
+  text-align: right;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
+.notes-toc-inline .toc-toggle:hover {
+  color: var(--accent);
+}
+.notes-toc-inline .toc-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: 6px;
+}
+.notes-toc-inline .toc-item {
+  display: block;
+  padding: 3px 0 3px 0;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.15s;
+}
+.notes-toc-inline .toc-item:hover {
+  color: var(--accent);
+  background: rgba(124,111,240,0.05);
+}
+.notes-toc-inline .toc-l3 {
+  padding-left: 1.2em;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.notes-toc-inline .toc-l4 {
+  padding-left: 2.4em;
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .topic-list {
@@ -560,6 +662,29 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
   .topic-panel.active {
     flex-direction: column;
   }
+  .notes-toc {
+    flex: 0 0 auto;
+    max-height: 120px;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 8px 12px;
+  }
+  .notes-toc .toc-h2, .notes-toc .toc-h3 {
+    display: inline-block;
+    margin: 2px 6px 2px 0;
+    padding: 2px 8px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .notes-toc-inline {
+    position: static;
+    margin-bottom: 12px;
+  }
+  .notes-toc-inline .toc-list {
+    max-height: 200px;
+  }
   .topic-notes {
     padding: 16px 20px;
     font-size: 0.82rem;
@@ -640,9 +765,11 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
         </div>
       </div>
       <div class="topic-panel" id="panel-intro">
+        <div class="notes-toc" id="intro-toc"></div>
         <div class="topic-notes" id="topic-intro-content"></div>
       </div>
       <div class="topic-panel" id="panel-reading">
+        <div class="notes-toc" id="reading-toc"></div>
         <div class="topic-notes" id="topic-reading-content"></div>
       </div>
     </div>
@@ -18433,47 +18560,138 @@ A：勒庞在这里是对领袖最批判，但是否这个批判是合理的却�
 function renderTopicNotes() {
   const introEl = document.getElementById('topic-intro-content');
   let introHtml = '';
+  let introToc = [];
   TOPIC_INTRO_NOTES.split(/=====/).filter(s => s.trim()).forEach(section => {
     const lines = section.trim().split('\n');
-    // Extract book name from first line: 《xxx》 or just xxx
     const firstLine = lines[0].trim();
     const bookMatch = firstLine.match(/《(.+?)》/);
     const title = bookMatch ? bookMatch[1] : firstLine.replace(/[《》]/g, '').trim();
     const content = lines.slice(1).join('\n');
     if (title) introHtml += '<div class="book-header">《' + title + '》</div>';
-    introHtml += formatNoteContent(content);
+    const result = formatNoteContent(content);
+    introHtml += result.html;
+    introToc = introToc.concat(result.toc);
   });
+  // Prepend TOC
+  if (introToc.length > 0) {
+    introHtml = buildTocHtml(introToc, 'intro') + introHtml;
+  }
   introEl.innerHTML = introHtml;
 
   const readEl = document.getElementById('topic-reading-content');
   let readHtml = '';
-  // Split by book: 传播学史 vs 乌合之众
+  let readToc = [];
   const books = READING_NOTES.split(/=====/).filter(s => s.trim());
   let currentBook = '';
   books.forEach(section => {
     const lines = section.trim().split('\n');
     const firstLine = lines[0].trim();
-    // Extract book name from separator title
     const bookMatch = firstLine.match(/《(.+?)》/);
     const bookName = bookMatch ? bookMatch[1] : '';
     if (bookName && bookName !== currentBook) {
       currentBook = bookName;
       readHtml += '<div class="book-header">《' + currentBook + '》逐日笔记</div>';
     }
-    // Find the date/day line for sub-header
     const content = lines.join('\n');
-    // Add Day sub-headers
     const daySections = content.split(/(\d+\.\d+\s*(?:胡师姐公益带读\s*)?Day\d+)/);
     daySections.forEach((seg, i) => {
       const dayMatch = seg.match(/(\d+\.\d+)\s*(?:胡师姐公益带读\s*)?(Day\d+)/);
       if (dayMatch) {
-        readHtml += '<h3>Day ' + dayMatch[2].replace('Day','') + '（' + dayMatch[1] + '）</h3>';
+        const dayId = 'toc-day-' + dayMatch[2].replace('Day','');
+        readToc.push({ level: 2, text: 'Day ' + dayMatch[2].replace('Day','') + '（' + dayMatch[1] + '）', id: dayId });
+        readHtml += '<h3 id="' + dayId + '">Day ' + dayMatch[2].replace('Day','') + '（' + dayMatch[1] + '）</h3>';
       } else if (seg.trim()) {
-        readHtml += formatNoteContent(seg);
+        const result = formatNoteContent(seg);
+        readHtml += result.html;
+        readToc = readToc.concat(result.toc);
       }
     });
   });
+  if (readToc.length > 0) {
+    readHtml = buildTocHtml(readToc, 'reading') + readHtml;
+  }
   readEl.innerHTML = readHtml;
+}
+
+function buildTocHtml(entries, prefix) {
+  let tocId = prefix + '-toc';
+  let html = '<div class="notes-toc-inline" id="' + tocId + '">';
+  html += '<div class="toc-title">📖 目录索引</div>';
+  html += '<div class="toc-toggle" onclick="toggleToc(\'' + tocId + '\')">收起</div>';
+  html += '<div class="toc-list">';
+  entries.forEach(e => {
+    const indent = e.level === 2 ? 0 : e.level === 3 ? 1 : 2;
+    html += '<a class="toc-item toc-l' + e.level + '" href="javascript:void(0)" onclick="scrollToToc(\'' + e.id + '\')">' + e.text + '</a>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function toggleToc(tocId) {
+  const toc = document.getElementById(tocId);
+  const list = toc.querySelector('.toc-list');
+  const toggle = toc.querySelector('.toc-toggle');
+  if (list.style.display === 'none') {
+    list.style.display = '';
+    toggle.textContent = '收起';
+  } else {
+    list.style.display = 'none';
+    toggle.textContent = '展开';
+  }
+}
+
+function scrollToToc(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.style.background = 'rgba(124,111,240,0.15)';
+    setTimeout(() => { el.style.background = ''; }, 1500);
+  }
+}
+
+function buildToc(containerId, tocId, panelId) {
+  const content = document.getElementById(containerId);
+  const toc = document.getElementById(tocId);
+  if (!content || !toc) return;
+  
+  const headings = content.querySelectorAll('h2, h3, .book-header');
+  if (!headings.length) { toc.style.display = 'none'; return; }
+  toc.style.display = '';
+  
+  let tocHtml = '';
+  headings.forEach(h => {
+    const id = h.id || 'toc-' + Math.random().toString(36).substr(2, 6);
+    if (!h.id) h.id = id;
+    const text = h.textContent.trim();
+    if (h.classList.contains('book-header')) {
+      tocHtml += '<div class="toc-book" onclick="scrollToHeading(\''+id+'\',\''+panelId+'\')">' + text + '</div>';
+    } else if (h.tagName === 'H2') {
+      tocHtml += '<div class="toc-h2" onclick="scrollToHeading(\''+id+'\',\''+panelId+'\')">' + text + '</div>';
+    } else if (h.tagName === 'H3') {
+      tocHtml += '<div class="toc-h3" onclick="scrollToHeading(\''+id+'\',\''+panelId+'\')">' + text + '</div>';
+    }
+  });
+  toc.innerHTML = tocHtml;
+  
+  // Scroll spy: highlight active heading on scroll
+  const notesEl = content;
+  notesEl.addEventListener('scroll', function() {
+    const scrollTop = notesEl.scrollTop;
+    const offset = 60;
+    let activeId = '';
+    headings.forEach(h => {
+      if (h.offsetTop - offset <= scrollTop) activeId = h.id;
+    });
+    toc.querySelectorAll('.toc-book, .toc-h2, .toc-h3').forEach(el => {
+      el.classList.toggle('toc-active', el.getAttribute('onclick')?.includes(activeId));
+    });
+  });
+}
+
+function scrollToHeading(id, panelId) {
+  const panel = document.getElementById(panelId);
+  const el = panel ? panel.querySelector('#' + id) : document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function mergePdfLines(text) {
@@ -18499,6 +18717,9 @@ function mergePdfLines(text) {
       if (!nextLine || /^\d{1,3}$/.test(nextLine) || nextLine.includes('更多新传考研')) break;
       if (/^=====/.test(nextLine) || /^第[一二三四五六七八九十百]+[篇编部分章节]/.test(nextLine)) break;
       if (/^[一二三四五六七八九十]+[、]/.test(nextLine)) break;
+      if (/^[（\(][一二三四五六七八九十\d]+[）\)]/.test(nextLine)) break;
+      if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(nextLine)) break;
+      if (/^[a-zA-Z][.．]\s/.test(nextLine)) break;
       if (/^\d+[\.\s]*Q[：:]/.test(nextLine) || /^A[：:]/.test(nextLine)) break;
       if (/^By\s/i.test(nextLine) || /^【小打卡/.test(nextLine)) break;
 
@@ -18552,40 +18773,87 @@ function cleanNoteText(text) {
 
 function formatNoteContent(text) {
   let cleaned = cleanNoteText(text);
-  // Pre-process: handle Q&A format for reading notes
-  // Pattern: "1. Q：question" or "1.Q：question" or "1. Q:question"
-  let html = cleaned
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    // Q&A format: make Q bold with highlight, A normal
-    .replace(/^(\d+[\.\s]*)Q[：:]\s*(.+)$/gm, '<p class="qa-q"><strong>$1Q：</strong>$2</p>')
-    .replace(/^(\d+[\.\s]*)Q[：:](.+)$/gm, '<p class="qa-q"><strong>$1Q：</strong>$2</p>')
-    // A lines following Q
-    .replace(/^A[：:]\s*(.+)$/gm, '<p class="qa-a"><strong>A：</strong>$1</p>')
-    // Book separators: 第X篇/编/部分
-    .replace(/^(第[一二三四五六七八九十百]+[篇编部分])\s+(.+)$/gm, '<h2>$1 $2</h2>')
-    // Chapter headers: 第X章
-    .replace(/^(第[一二三四五六七八九十]+章)\s+(.+)$/gm, '<h2>$1 $2</h2>')
-    // Section headers: 第X节
-    .replace(/^(第[一二三四五六七八九十]+节)\s+(.+)$/gm, '<h3>$1 $2</h3>')
-    // Chinese numeral + 顿号 headers: 一、xxx
-    .replace(/^([一二三四五六七八九十]+)[、．.]\s*(.+)$/gm, '<h3>$1、$2</h3>')
-    // Numbered items: 1. xxx or 1、xxx (but NOT Q&A lines, already handled)
-    .replace(/^(\d+)[.．、]\s*(?!Q[：:])(.+)$/gm, '<p class="num-item"><strong>$1. $2</strong></p>')
-    // Bracket numbered items: （1）or (1) - only at line start
-    .replace(/^[（\(](\d+)[）\)]\s*(.+)$/gm, '<p style="padding-left:1.2em;text-indent:-1.2em"><strong>($1)</strong> $2</p>')
-    // Chinese bracket numbered items: （一）xxx
-    .replace(/^[（\(]([一二三四五六七八九十]+)[）\)]\s*(.+)$/gm, '<h4>$1、$2</h4>')
-    // Circled numbers: ①xxx
-    .replace(/^(①)(.+)$/gm, '<p style="padding-left:1.2em;text-indent:-1em">$1 $2</p>')
-    // 【同学回答/提问/讨论/补充】blocks
-    .replace(/【(同学(?:回答|提问|讨论)|补充)[：:]?/g, '<span class="note-tag">【$1】</span>')
-    // Collapse multiple blank lines
-    .replace(/\n{2,}/g, '</p>\n<p>')
-    // Single newlines to <br>
-    .replace(/\n/g, '<br>');
-  return '<p>' + html + '</p>';
+  // Split into lines, process line by line for accurate heading detection
+  const lines = cleaned.split('\n');
+  let html = '';
+  let tocEntries = []; // { level, text, id }
+  
+  for (let line of lines) {
+    let escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let trimmed = line.trim();
+    if (!trimmed) { html += '\n'; continue; }
+    
+    // Detect headings with strict patterns
+    let headingMatch = null;
+    
+    // 第X篇/编/部分 (h2)
+    let m = trimmed.match(/^(第[一二三四五六七八九十百]+[篇编部分])\s+(.+)$/);
+    if (m) headingMatch = { level: 2, text: m[1] + ' ' + m[2] };
+    
+    // 第X章 (h2) - but not if followed by common non-title text
+    if (!headingMatch) {
+      m = trimmed.match(/^(第[一二三四五六七八九十]+章)\s+(.+)$/);
+      if (m) headingMatch = { level: 2, text: m[1] + ' ' + m[2] };
+    }
+    
+    // 第X节 (h3)
+    if (!headingMatch) {
+      m = trimmed.match(/^(第[一二三四五六七八九十]+节)\s+(.+)$/);
+      if (m) headingMatch = { level: 3, text: m[1] + ' ' + m[2] };
+    }
+    
+    // 一、xxx / 二、xxx (h3) - must be followed by real title text (not just parentheses)
+    if (!headingMatch) {
+      m = trimmed.match(/^([一二三四五六七八九十]+)[、．]\s*(.{2,}.+)$/);
+      if (m && !/^[（\(][^）\)]{1,3}[）\)]/.test(m[2])) {
+        headingMatch = { level: 3, text: m[1] + '、' + m[2] };
+      }
+    }
+    
+    // （一）xxx / （二）xxx (h4) - Chinese bracket number
+    if (!headingMatch) {
+      m = trimmed.match(/^[（\(]([一二三四五六七八九十]+)[）\)]\s*(.{2,}.+)$/);
+      if (m) headingMatch = { level: 4, text: m[1] + '、' + m[2] };
+    }
+    
+    if (headingMatch) {
+      const id = 'toc-' + tocEntries.length;
+      tocEntries.push({ level: headingMatch.level, text: headingMatch.text, id: id });
+      const tag = headingMatch.level === 2 ? 'h2' : headingMatch.level === 3 ? 'h3' : 'h4';
+      html += '<' + tag + ' id="' + id + '">' + escaped + '</' + tag + '>\n';
+      continue;
+    }
+    
+    // Q&A format
+    m = trimmed.match(/^(\d+[\.\s]*)Q[：:]\s*(.+)$/);
+    if (m) { html += '<p class="qa-q"><strong>' + escaped + '</strong></p>\n'; continue; }
+    m = trimmed.match(/^A[：:]\s*(.+)$/);
+    if (m) { html += '<p class="qa-a"><strong>A：</strong>' + escaped.replace(/^A[：:]/,'') + '</p>\n'; continue; }
+    
+    // Numbered items: 1. xxx / 1、xxx / 1) xxx - but not Q&A
+    m = trimmed.match(/^(\d+)[.．、)]\s*(.{2,}.+)$/);
+    if (m) { html += '<p class="num-item"><strong>' + escaped + '</strong></p>\n'; continue; }
+    
+    // Bracket numbered: （1）or (1)
+    m = trimmed.match(/^[（\(](\d+)[）\)]\s*(.{2,}.+)$/);
+    if (m) { html += '<p style="padding-left:1.2em;text-indent:-1.2em">' + escaped + '</p>\n'; continue; }
+    
+    // 【同学回答/提问/讨论/补充】
+    if (/^【(同学(?:回答|提问|讨论)|补充)[：:]?/.test(trimmed)) {
+      escaped = escaped.replace(/【(同学(?:回答|提问|讨论)|补充)[：:]?/g, '<span class="note-tag">【$1】</span>');
+    }
+    
+    // Default: paragraph
+    html += escaped + '\n';
+  }
+  
+  // Replace consecutive newlines with paragraph breaks
+  html = html.replace(/\n{2,}/g, '</p>\n<p>');
+  html = '<p>' + html + '</p>';
+  html = html.replace(/<p>\s*<(h[234])/g, '<$1');
+  html = html.replace(/<\/(h[234])>\s*<\/p>/g, '</$1>');
+  
+  return { html: html, toc: tocEntries };
 }
 
 // ===== MODE SWITCH =====
