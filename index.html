@@ -172,55 +172,6 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 }
 
 
-.notes-toc {
-  flex: 0 0 200px;
-  overflow-y: auto;
-  padding: 16px 12px;
-  border-right: 1px solid var(--rule);
-  background: var(--bg2);
-  font-size: 0.75rem;
-  line-height: 1.6;
-  max-height: 100%;
-}
-.notes-toc::-webkit-scrollbar { width: 3px; }
-.notes-toc::-webkit-scrollbar-thumb { background: rgba(124,111,240,0.2); border-radius: 2px; }
-.notes-toc .toc-book {
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: var(--ink);
-  margin: 16px 0 6px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--rule);
-  cursor: pointer;
-}
-.notes-toc .toc-book:first-child { margin-top: 0; }
-.notes-toc .toc-book:hover { color: var(--accent); }
-.notes-toc .toc-h2 {
-  padding-left: 10px;
-  margin: 4px 0 2px;
-  color: var(--muted);
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.notes-toc .toc-h2:hover { color: var(--accent); }
-.notes-toc .toc-h3 {
-  padding-left: 20px;
-  margin: 2px 0;
-  color: var(--muted);
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.notes-toc .toc-h3:hover { color: var(--accent); }
-.notes-toc .toc-active {
-  color: var(--accent) !important;
-  font-weight: 600;
-}
-
-
 .topic-list {
   display: flex;
   gap: 12px;
@@ -499,22 +450,6 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
   }
   .topic-panel.active {
     flex-direction: column;
-  }
-  .notes-toc {
-    flex: 0 0 auto;
-    max-height: 120px;
-    border-right: none;
-    border-bottom: 1px solid var(--rule);
-    padding: 8px 12px;
-  }
-  .notes-toc .toc-h2, .notes-toc .toc-h3 {
-    display: inline-block;
-    margin: 2px 6px 2px 0;
-    padding: 2px 8px;
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    white-space: nowrap;
   }
   .topic-article {
     flex: 1 1 auto;
