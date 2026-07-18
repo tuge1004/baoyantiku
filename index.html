@@ -18476,7 +18476,51 @@ function renderTopicNotes() {
   readEl.innerHTML = readHtml;
 }
 
+function mergePdfLines(text) {
+  const lines = text.split('\n');
+  const result = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    // Skip empty lines, ads, page numbers - pass through as-is
+    if (!line || /^\d{1,3}$/.test(line) || line.includes('更多新传考研')) {
+      result.push(lines[i]);
+      continue;
+    }
+    // Skip structural lines (headers, separators)
+    if (/^=====/.test(line) || /^第[一二三四五六七八九十百]+[篇编部分章节]/.test(line) || /^[一二三四五六七八九十]+[、]/.test(line)) {
+      result.push(lines[i]);
+      continue;
+    }
+    // Check if this line should merge with next line(s)
+    // Note: Q/A lines are NOT skipped here because their content may also be broken by PDF hard-wraps
+    while (i + 1 < lines.length) {
+      const nextLine = lines[i + 1].trim();
+      // Don't merge if next line is empty, ad, page number, or structural
+      if (!nextLine || /^\d{1,3}$/.test(nextLine) || nextLine.includes('更多新传考研')) break;
+      if (/^=====/.test(nextLine) || /^第[一二三四五六七八九十百]+[篇编部分章节]/.test(nextLine)) break;
+      if (/^[一二三四五六七八九十]+[、]/.test(nextLine)) break;
+      if (/^\d+[\.\s]*Q[：:]/.test(nextLine) || /^A[：:]/.test(nextLine)) break;
+      if (/^By\s/i.test(nextLine) || /^【小打卡/.test(nextLine)) break;
+
+      // Core merge logic: if current line's last character is NOT any punctuation,
+      // it means this is a PDF hard-wrap break point, so merge with next line.
+      const lastChar = line.slice(-1);
+      const isPunctuation = /[。！？，；：、】）》"\. ,;:!?\)]/.test(lastChar);
+
+      if (!isPunctuation) {
+        line = line + nextLine;
+        i++;
+        continue;
+      }
+      break;
+    }
+    result.push(line);
+  }
+  return result.join('\n');
+}
+
 function cleanNoteText(text) {
+  text = mergePdfLines(text);
   return text
     // Remove ad lines
     .replace(/^更多新传考研\/保研\/考博辅导.*$/gm, '')
