@@ -241,6 +241,37 @@ body { font-family: 'Noto Sans CJK SC','WenQuanYi Micro Hei','Microsoft YaHei',s
 .topic-notes .book-header:first-child {
   margin-top: 0;
 }
+.topic-notes .qa-q {
+  margin: 12px 0 4px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.topic-notes .qa-q strong {
+  color: var(--accent);
+}
+.topic-notes .qa-a {
+  margin: 2px 0 10px;
+  padding-left: 1em;
+  border-left: 2px solid rgba(124,111,240,0.15);
+}
+.topic-notes .num-item {
+  margin: 4px 0;
+}
+.topic-notes .note-tag {
+  display: inline-block;
+  background: rgba(124,111,240,0.08);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.82em;
+  margin-right: 4px;
+}
+.topic-notes h4 {
+  font-size: 0.92rem;
+  color: var(--ink);
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
 
 .topic-list {
   display: flex;
@@ -18402,9 +18433,12 @@ A：勒庞在这里是对领袖最批判，但是否这个批判是合理的却�
 function renderTopicNotes() {
   const introEl = document.getElementById('topic-intro-content');
   let introHtml = '';
-  TOPIC_INTRO_NOTES.split('=====').filter(s => s.trim()).forEach(section => {
+  TOPIC_INTRO_NOTES.split(/=====/).filter(s => s.trim()).forEach(section => {
     const lines = section.trim().split('\n');
-    const title = lines[0].trim().replace(/[《》]/g, '').replace(/\/\d+\.\d+Day\d+.*$/,'').trim();
+    // Extract book name from first line: 《xxx》 or just xxx
+    const firstLine = lines[0].trim();
+    const bookMatch = firstLine.match(/《(.+?)》/);
+    const title = bookMatch ? bookMatch[1] : firstLine.replace(/[《》]/g, '').trim();
     const content = lines.slice(1).join('\n');
     if (title) introHtml += '<div class="book-header">《' + title + '》</div>';
     introHtml += formatNoteContent(content);
@@ -18413,12 +18447,31 @@ function renderTopicNotes() {
 
   const readEl = document.getElementById('topic-reading-content');
   let readHtml = '';
-  READING_NOTES.split('=====').filter(s => s.trim()).forEach(section => {
+  // Split by book: 传播学史 vs 乌合之众
+  const books = READING_NOTES.split(/=====/).filter(s => s.trim());
+  let currentBook = '';
+  books.forEach(section => {
     const lines = section.trim().split('\n');
-    const title = lines[0].trim().replace(/[《》]/g, '').replace(/\/\d+\.\d+Day\d+.*$/,'').trim();
-    const content = lines.slice(1).join('\n');
-    if (title) readHtml += '<div class="book-header">《' + title + '》</div>';
-    readHtml += formatNoteContent(content);
+    const firstLine = lines[0].trim();
+    // Extract book name from separator title
+    const bookMatch = firstLine.match(/《(.+?)》/);
+    const bookName = bookMatch ? bookMatch[1] : '';
+    if (bookName && bookName !== currentBook) {
+      currentBook = bookName;
+      readHtml += '<div class="book-header">《' + currentBook + '》逐日笔记</div>';
+    }
+    // Find the date/day line for sub-header
+    const content = lines.join('\n');
+    // Add Day sub-headers
+    const daySections = content.split(/(\d+\.\d+\s*(?:胡师姐公益带读\s*)?Day\d+)/);
+    daySections.forEach((seg, i) => {
+      const dayMatch = seg.match(/(\d+\.\d+)\s*(?:胡师姐公益带读\s*)?(Day\d+)/);
+      if (dayMatch) {
+        readHtml += '<h3>Day ' + dayMatch[2].replace('Day','') + '（' + dayMatch[1] + '）</h3>';
+      } else if (seg.trim()) {
+        readHtml += formatNoteContent(seg);
+      }
+    });
   });
   readEl.innerHTML = readHtml;
 }
@@ -18427,35 +18480,66 @@ function cleanNoteText(text) {
   return text
     // Remove ad lines
     .replace(/^更多新传考研\/保研\/考博辅导.*$/gm, '')
-    // Remove standalone page numbers (single digit on a line, possibly with spaces)
+    // Remove standalone page numbers
     .replace(/^\s*\d{1,3}\s*$/gm, '')
     // Remove 胡师姐 branding lines
-    .replace(/胡师姐.*?(?:蓝皮书|公益带读|团队|教研).*/gm, '')
+    .replace(/胡师姐.*?(?:蓝皮书|公益带读|团队|教研|带读结束|为各位).*/gm, '')
     .replace(/为各位坚持下来的小伙伴撒花.*/gm, '')
-    // Clean Day title: remove 笔记.pdf suffix
+    // Clean Day title: remove 笔记.pdf suffix and date+胡师姐公益带读 part
     .replace(/笔记\.pdf/g, '')
+    .replace(/\d+\.\d+\s*胡师姐公益带读\s*Day\d+/g, '')
+    // Remove By署名 lines
+    .replace(/^By\s+\S+.*$/gm, '')
+    // Remove 【小打卡内容分享】lines
+    .replace(/【小打卡内容分享】.*$/gm, '')
+    // Remove 带读人署名 lines
+    .replace(/^.*带读人：.*$/gm, '')
     // Fix OCR: mixed brackets (1）→ （1）
     .replace(/\((\d+）)/g, '（$1')
     // Fix OCR: double punctuation 。。→ 。
     .replace(/。。/g, '。')
-    // Remove "带读人：" attribution lines
-    .replace(/^.*带读人：.*$/gm, '')
-    // Collapse multiple blank lines
+    // Remove Q&A numbering prefix that got orphaned: "1.Q：" at end of line followed by content
+    // Remove "附：" exam question lines
+    .replace(/^附[：:].*$/gm, '')
+    // Collapse multiple blank lines into single
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
 function formatNoteContent(text) {
   let cleaned = cleanNoteText(text);
+  // Pre-process: handle Q&A format for reading notes
+  // Pattern: "1. Q：question" or "1.Q：question" or "1. Q:question"
   let html = cleaned
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/^第.+篇\s+.+$/gm, '<h2>$&</h2>')
-    .replace(/^第.+章\s+.+$/gm, '<h3>$&</h3>')
-    .replace(/^[一二三四五六七八九十]+[、．.]\s*.+$/gm, '<h3>$&</h3>')
-    .replace(/^\d+[.、．]\s*.+$/gm, '<p><strong>$&</strong></p>')
-    .replace(/\n{2,}/g, '</p><p>')
+    // Q&A format: make Q bold with highlight, A normal
+    .replace(/^(\d+[\.\s]*)Q[：:]\s*(.+)$/gm, '<p class="qa-q"><strong>$1Q：</strong>$2</p>')
+    .replace(/^(\d+[\.\s]*)Q[：:](.+)$/gm, '<p class="qa-q"><strong>$1Q：</strong>$2</p>')
+    // A lines following Q
+    .replace(/^A[：:]\s*(.+)$/gm, '<p class="qa-a"><strong>A：</strong>$1</p>')
+    // Book separators: 第X篇/编/部分
+    .replace(/^(第[一二三四五六七八九十百]+[篇编部分])\s+(.+)$/gm, '<h2>$1 $2</h2>')
+    // Chapter headers: 第X章
+    .replace(/^(第[一二三四五六七八九十]+章)\s+(.+)$/gm, '<h2>$1 $2</h2>')
+    // Section headers: 第X节
+    .replace(/^(第[一二三四五六七八九十]+节)\s+(.+)$/gm, '<h3>$1 $2</h3>')
+    // Chinese numeral + 顿号 headers: 一、xxx
+    .replace(/^([一二三四五六七八九十]+)[、．.]\s*(.+)$/gm, '<h3>$1、$2</h3>')
+    // Numbered items: 1. xxx or 1、xxx (but NOT Q&A lines, already handled)
+    .replace(/^(\d+)[.．、]\s*(?!Q[：:])(.+)$/gm, '<p class="num-item"><strong>$1. $2</strong></p>')
+    // Bracket numbered items: （1）or (1) - only at line start
+    .replace(/^[（\(](\d+)[）\)]\s*(.+)$/gm, '<p style="padding-left:1.2em;text-indent:-1.2em"><strong>($1)</strong> $2</p>')
+    // Chinese bracket numbered items: （一）xxx
+    .replace(/^[（\(]([一二三四五六七八九十]+)[）\)]\s*(.+)$/gm, '<h4>$1、$2</h4>')
+    // Circled numbers: ①xxx
+    .replace(/^(①)(.+)$/gm, '<p style="padding-left:1.2em;text-indent:-1em">$1 $2</p>')
+    // 【同学回答/提问/讨论/补充】blocks
+    .replace(/【(同学(?:回答|提问|讨论)|补充)[：:]?/g, '<span class="note-tag">【$1】</span>')
+    // Collapse multiple blank lines
+    .replace(/\n{2,}/g, '</p>\n<p>')
+    // Single newlines to <br>
     .replace(/\n/g, '<br>');
   return '<p>' + html + '</p>';
 }
